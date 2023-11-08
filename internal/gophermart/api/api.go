@@ -10,28 +10,39 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/config"
+	"github.com/k-orolevsk-y/gophermart/internal/gophermart/handlers"
+	"github.com/k-orolevsk-y/gophermart/internal/gophermart/middlewares"
+	"github.com/k-orolevsk-y/gophermart/internal/gophermart/repository"
+	"github.com/k-orolevsk-y/gophermart/pkg/router"
 )
 
 type APIService struct {
-	router *gin.Engine
+	router *router.Router
 	logger *zap.Logger
+	pg     *repository.Pg
 
 	srv       *http.Server
 	srvClosed bool
 }
 
-func New(logger *zap.Logger) *APIService {
+func New(logger *zap.Logger, pg *repository.Pg) *APIService {
 	if config.Config.ProductionMode {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	return &APIService{
-		router: gin.New(),
+		router: router.New(),
 		logger: logger,
+		pg:     pg,
 	}
 }
 
-func (a *APIService) GetRouter() *gin.Engine {
+func (a *APIService) Configure() {
+	middlewares.ConfigureMiddlewaresService(a)
+	handlers.ConfigureHandlersService(a)
+}
+
+func (a *APIService) GetRouter() *router.Router {
 	return a.router
 }
 
@@ -39,16 +50,11 @@ func (a *APIService) GetLogger() *zap.Logger {
 	return a.logger
 }
 
-func (a *APIService) GetRepository() {
-	return
+func (a *APIService) GetPg() *repository.Pg {
+	return a.pg
 }
 
 func (a *APIService) Run() {
-	a.router.GET("/", func(c *gin.Context) {
-		time.Sleep(time.Second * 15)
-		c.JSON(http.StatusOK, "OK")
-	})
-
 	a.srv = &http.Server{
 		Addr:    config.Config.RunAddress,
 		Handler: a.router,

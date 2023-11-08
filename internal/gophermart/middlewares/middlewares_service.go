@@ -3,6 +3,8 @@ package middlewares
 import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
+
+	"github.com/k-orolevsk-y/gophermart/pkg/router"
 )
 
 type middlewaresService struct {
@@ -10,15 +12,17 @@ type middlewaresService struct {
 }
 
 type apiService interface {
-	GetRouter() *gin.Engine
+	GetRouter() *router.Router
 	GetLogger() *zap.Logger
 }
 
 func ConfigureMiddlewaresService(api apiService) {
-	ms := &middlewaresService{}
+	ms := &middlewaresService{
+		logger: api.GetLogger(),
+	}
 	api.GetRouter().Use(ms.Logger)
 }
 
-func (ms *middlewaresService) Logger(ctx *gin.Context) {
-	ms.logger.Info("new request", zap.Any("ctx", ctx))
+func (ms *middlewaresService) Logger(_ *gin.Context) {
+	ms.logger.Info("new request")
 }

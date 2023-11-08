@@ -11,8 +11,7 @@ import (
 
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/api"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/config"
-	"github.com/k-orolevsk-y/gophermart/internal/gophermart/handlers"
-	"github.com/k-orolevsk-y/gophermart/internal/gophermart/middlewares"
+	"github.com/k-orolevsk-y/gophermart/internal/gophermart/repository"
 	"github.com/k-orolevsk-y/gophermart/pkg/logger"
 )
 
@@ -26,12 +25,15 @@ func main() {
 		panic(err)
 	}
 
-	log.Info("init logger")
-	log.Info("parsed config", zap.Any("Config", config.Config))
+	log.Info("parsed config", zap.Any("config", config.Config))
 
-	apiService := api.New(log)
-	middlewares.ConfigureMiddlewaresService(apiService)
-	handlers.ConfigureHandlersService(apiService)
+	rep, err := repository.NewPG(log)
+	if err != nil {
+		log.Panic("error connect database", zap.Error(err))
+	}
+
+	apiService := api.New(log, rep)
+	apiService.Configure()
 	apiService.Run()
 
 	quitSignal := make(chan os.Signal, 1)
