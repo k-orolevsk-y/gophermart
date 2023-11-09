@@ -1,27 +1,29 @@
 -- +goose Up
 CREATE TABLE IF NOT EXISTS users (
-    Id uuid NOT NULL DEFAULT gen_random_uuid(),
-    Login varchar(100) NOT NULL,
-    Password text NOT NULL,
-    Balance int NOT NULL,
-    CreatedAt timestamptz NOT NULL,
-    UpdatedAt timestamptz NOT NULL
+    id uuid PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
+    login varchar(100) NOT NULL,
+    password text NOT NULL,
+    balance int NOT NULL,
+    created_at timestamptz NOT NULL
 );
+CREATE INDEX IF NOT EXISTS idx_users_login ON users (login);
 
 CREATE TABLE IF NOT EXISTS orders (
-    Id bigint NOT NULL,
-    UserId uuid NOT NULL,
-    Status varchar(28) NOT NULL DEFAULT 'NEW',
-    Accrual int NOT NULL DEFAULT 0,
-    UploadedAt timestamptz NOT NULL
+    id bigint PRIMARY KEY  NOT NULL UNIQUE,
+    user_id uuid NOT NULL,
+    status varchar(28) NOT NULL DEFAULT 'NEW',
+    accrual int NOT NULL DEFAULT 0,
+    uploaded_at timestamptz NOT NULL
 );
+CREATE INDEX IF NOT EXISTS idx_orders_userId ON orders (user_id);
 
 CREATE TABLE IF NOT EXISTS users_withdrawals (
-    Id uuid NOT NULL DEFAULT gen_random_uuid(),
-    UserId uuid NOT NULL,
-    OrderId bigint NOT NULL,
-    Sum int NOT NULL DEFAULT 0,
-    ProcessedAt timestamptz NOT NULL
+    id uuid PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
+    user_id uuid NOT NULL,
+    order_id bigint NOT NULL,
+    sum int NOT NULL DEFAULT 0,
+    processed_at timestamptz NOT NULL
 );
+CREATE INDEX IF NOT EXISTS idx_users_withdrawals_userId_orderId ON users_withdrawals (user_id, order_id);
 
 -- +goose Down
