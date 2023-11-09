@@ -1,14 +1,13 @@
 package repository
 
 import (
-	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 
 	"github.com/k-orolevsk-y/gophermart/pkg/database/postgres"
 )
 
 type Pg struct {
-	db *sqlx.DB
+	db postgres.PgSQL
 }
 
 func NewPG(logger *zap.Logger) (*Pg, error) {
@@ -24,4 +23,16 @@ func NewPG(logger *zap.Logger) (*Pg, error) {
 
 func (p *Pg) User() *pgCategoryUser {
 	return &pgCategoryUser{db: p.db}
+}
+
+func (p *Pg) Order() *pgCategoryOrders {
+	return &pgCategoryOrders{db: p.db}
+}
+
+func (p *Pg) UserWithdraw() *pgCategoryUserWithdraw {
+	return &pgCategoryUserWithdraw{db: p.db}
+}
+
+func (p *Pg) Close() error {
+	return p.db.Close()
 }
