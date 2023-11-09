@@ -3,6 +3,7 @@ package migrations
 import (
 	"embed"
 	"fmt"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pressly/goose/v3"
@@ -33,5 +34,5 @@ type gooseLogger struct {
 }
 
 func (gl *gooseLogger) Printf(format string, v ...interface{}) {
-	gl.Infof(format, v...)
+	gl.Infof(strings.TrimSuffix(format, "\n"), v...)
 }
