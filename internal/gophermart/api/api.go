@@ -29,6 +29,7 @@ func New(logger *zap.Logger, pg *repository.Pg) *APIService {
 	if config.Config.ProductionMode {
 		gin.SetMode(gin.ReleaseMode)
 	}
+	gin.DefaultWriter = router.NewRouterLogger(logger)
 
 	return &APIService{
 		router: router.New(),

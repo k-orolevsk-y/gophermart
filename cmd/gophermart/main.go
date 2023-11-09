@@ -24,6 +24,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer log.Sync() // nolint
 
 	log.Info("parsed config", zap.Any("config", config.Config))
 
@@ -31,6 +32,7 @@ func main() {
 	if err != nil {
 		log.Panic("error connect database", zap.Error(err))
 	}
+	defer rep.Close()
 
 	apiService := api.New(log, rep)
 	apiService.Configure()
