@@ -25,3 +25,11 @@ func NewPG(logger *zap.Logger) (*Pg, error) {
 func (p *Pg) User() *pgCategoryUser {
 	return &pgCategoryUser{db: p.db}
 }
+
+func (p *Pg) Order() *pgCategoryOrders {
+	return &pgCategoryOrders{db: p.db}
+}
+
+func (p *Pg) UserWithdraw() *pgCategoryUserWithdraw {
+	return &pgCategoryUserWithdraw{db: p.db}
+}
