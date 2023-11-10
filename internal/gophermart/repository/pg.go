@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"github.com/go-faster/errors"
+	"github.com/jackc/pgx/v5/pgconn"
 	"go.uber.org/zap"
 
 	"github.com/k-orolevsk-y/gophermart/pkg/database/postgres"
@@ -31,6 +33,15 @@ func (p *Pg) Order() *pgCategoryOrders {
 
 func (p *Pg) UserWithdraw() *pgCategoryUserWithdraw {
 	return &pgCategoryUserWithdraw{db: p.db}
+}
+
+func (p *Pg) GetCodeFromError(err error) string {
+	var pgError *pgconn.PgError
+	if !errors.As(err, &pgError) {
+		return ""
+	}
+
+	return pgError.Code
 }
 
 func (p *Pg) Close() error {
