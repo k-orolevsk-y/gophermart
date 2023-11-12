@@ -28,8 +28,8 @@ func (hs *handlerService) Register(ctx *gin.Context) {
 		Password: fmt.Sprint(data.Password),
 	}
 	if err := hs.pg.User().Create(ctx, &user); err != nil {
-		code := hs.pg.GetCodeFromError(err)
-		if pgerrcode.IsIntegrityConstraintViolation(code) {
+		pgError := hs.pg.ParsePgError(err)
+		if pgerrcode.IsIntegrityConstraintViolation(pgError.Code) {
 			ctx.AbortWithStatusJSON(http.StatusConflict, models.NewConflictErrorResponse("A user with this login is already registered"))
 		} else {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
