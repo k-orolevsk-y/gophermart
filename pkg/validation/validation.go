@@ -10,14 +10,17 @@ import (
 	"github.com/gookit/validate"
 )
 
-type bindingWithValidation struct{}
+type (
+	bindingWithValidation struct{}
+)
 
 func NewBindingWithValidation() *bindingWithValidation {
+	newValidators()
 	return &bindingWithValidation{}
 }
 
 func (b bindingWithValidation) Name() string {
-	return "custom_json_binding"
+	return "binding_with_validation"
 }
 
 func (b bindingWithValidation) Bind(r *http.Request, ptr any) error {
@@ -79,23 +82,36 @@ func (b bindingWithValidation) extractRules(ptr interface{}, prefix string) (map
 		}
 		key = fmt.Sprintf("%s%s", prefix, key)
 
-		validateTag := field.Tag.Get("validate")
-
 		fieldType := field.Type.Kind()
 		if fieldType == reflect.Ptr {
 			fieldType = field.Type.Elem().Kind()
-		} else if fieldType == reflect.Struct {
-			rules, _ := b.extractRules(field.Type, fmt.Sprintf("%s.", key))
-			for k, rule := range rules {
-				result[k] = rule
+		}
+
+		if fieldType == reflect.Struct {
+			rules, err := b.extractRules(field.Type, fmt.Sprintf("%s.", key))
+			if err == nil {
+				for k, rule := range rules {
+					result[k] = rule
+				}
 			}
 		}
 
-		if fieldType != reflect.Struct && fieldType != reflect.Array && fieldType != reflect.Interface {
-			if validateTag != "" {
-				validateTag = fmt.Sprintf("%s|%s", validateTag, fieldType.String())
+		validateTag := field.Tag.Get("validate")
+
+		var variableType string
+		if fieldType == reflect.Bool || fieldType == reflect.String {
+			variableType = fieldType.String()
+		} else if fieldType == reflect.Float32 || fieldType == reflect.Float64 {
+			variableType = "floatType"
+		} else if strings.Contains(fieldType.String(), "int") {
+			variableType = "intType"
+		}
+
+		if variableType != "" {
+			if validateTag == "" {
+				validateTag = variableType
 			} else {
-				validateTag = fieldType.String()
+				validateTag = fmt.Sprintf("%s|%s", variableType, validateTag)
 			}
 		}
 
@@ -120,9 +136,9 @@ func (b bindingWithValidation) replaceErrors(v *validate.Validation) {
 
 	if strings.Contains(v.Errors.String(), jsonInvalidCharacterError) {
 		v.Errors = validate.Errors{}
-		v.AddError("_validate", "_validate", "Invalid data was transmitted that can't be unmarshalled")
+		v.AddError("_validate", "_validate", errorMessages["_json"])
 	} else if strings.Contains(v.Errors.String(), validate.ErrEmptyData.Error()) {
 		v.Errors = validate.Errors{}
-		v.Errors.Add("_validate", "_validate", "It is necessary to transfer data for the request")
+		v.Errors.Add("_validate", "_validate", errorMessages["_noData"])
 	}
 }
