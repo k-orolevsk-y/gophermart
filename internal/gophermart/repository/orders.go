@@ -24,7 +24,7 @@ func (pgCO *pgCategoryOrders) Create(ctx context.Context, order *models.Order) e
 }
 
 func (pgCO *pgCategoryOrders) GetAllByUserID(ctx context.Context, userID uuid.UUID) ([]models.Order, error) {
-	var orders []models.Order
+	orders := make([]models.Order, 0)
 	err := pgCO.db.SelectContext(ctx, &orders, "SELECT * FROM orders WHERE user_id = $1", userID)
 
 	return orders, err
