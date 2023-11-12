@@ -1,7 +1,9 @@
 package config
 
 import (
+	"errors"
 	"flag"
+	"os"
 
 	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
@@ -28,7 +30,7 @@ func ParseConfig() error {
 
 	flag.Parse()
 
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
 	return env.Parse(&Config)
