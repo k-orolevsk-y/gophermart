@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS orders (
     id bigint PRIMARY KEY  NOT NULL UNIQUE,
     user_id uuid NOT NULL,
     status varchar(28) NOT NULL DEFAULT 'NEW',
-    accrual DOUBLE PRECISION NOT NULL DEFAULT 0,
+    accrual DOUBLE PRECISION DEFAULT NULL,
     uploaded_at timestamptz NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_orders_userId ON orders (user_id);
