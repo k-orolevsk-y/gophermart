@@ -35,13 +35,13 @@ func (p *Pg) UserWithdraw() *pgCategoryUserWithdraw {
 	return &pgCategoryUserWithdraw{db: p.db}
 }
 
-func (p *Pg) GetCodeFromError(err error) string {
+func (p *Pg) ParsePgError(err error) *pgconn.PgError {
 	var pgError *pgconn.PgError
 	if !errors.As(err, &pgError) {
-		return ""
+		return &pgconn.PgError{}
 	}
 
-	return pgError.Code
+	return pgError
 }
 
 func (p *Pg) Close() error {
