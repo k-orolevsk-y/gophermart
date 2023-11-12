@@ -13,6 +13,11 @@ type pgCategoryOrders struct {
 	db postgres.PgSQL
 }
 
+const (
+	ErrorOrderByThisUser  = "order already created by this user"
+	ErrorOrderByOtherUser = "order already created by other user"
+)
+
 func (pgCO *pgCategoryOrders) Create(ctx context.Context, order *models.Order) error {
 	_, err := pgCO.db.ExecContext(
 		ctx,

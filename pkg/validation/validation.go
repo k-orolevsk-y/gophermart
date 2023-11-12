@@ -58,7 +58,7 @@ func (b bindingWithValidation) validate(r *http.Request, rules map[string]string
 	return v
 }
 
-func (b bindingWithValidation) extractRules(ptr interface{}, prefix string) (map[string]string, error) {
+func (b bindingWithValidation) extractRules(ptr any, prefix string) (map[string]string, error) {
 	ptrType, ok := ptr.(reflect.Type)
 	if !ok {
 		ptrType = reflect.TypeOf(ptr)
