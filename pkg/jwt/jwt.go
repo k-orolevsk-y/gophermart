@@ -4,9 +4,13 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/google/uuid"
+
+	"github.com/k-orolevsk-y/gophermart/internal/gophermart/models"
 )
 
 type Jwt struct {
@@ -15,7 +19,7 @@ type Jwt struct {
 
 type Claims struct {
 	jwt.RegisteredClaims
-	UserID string `json:"uid"`
+	UserID uuid.UUID `json:"uid"`
 }
 
 func New(hmacSecret string) *Jwt {
@@ -24,10 +28,14 @@ func New(hmacSecret string) *Jwt {
 	}
 }
 
-func (j *Jwt) Encode(userID string) (string, error) {
+func (j *Jwt) Encode(user *models.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, Claims{
-		RegisteredClaims: jwt.RegisteredClaims{},
-		UserID:           userID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    "gophermart",
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(time.Now().AddDate(0, 0, 7)),
+		},
+		UserID: user.ID,
 	})
 
 	return token.SignedString(j.hmacSecret)
@@ -41,6 +49,9 @@ func (j *Jwt) Decode(tokenString string) (jwt.Claims, error) {
 
 		return j.hmacSecret, nil
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	if claims, ok := token.Claims.(Claims); ok && token.Valid {
 		return claims, nil
@@ -54,8 +65,7 @@ func (j *Jwt) Middleware(ctx *gin.Context) {
 	tokenString = strings.ReplaceAll(tokenString, "Bearer ", "")
 
 	if claims, err := j.Decode(tokenString); err != nil {
-		ctx.Status(http.StatusUnauthorized)
-		ctx.Abort()
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, "An invalid token was transferred or it has expired")
 	} else {
 		ctx.Set("tokenClaims", claims)
 	}

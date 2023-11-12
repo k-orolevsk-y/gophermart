@@ -1,18 +1,22 @@
 package handlers
 
 import (
+	"github.com/gin-gonic/gin/binding"
 	"go.uber.org/zap"
 
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/config"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/repository"
 	"github.com/k-orolevsk-y/gophermart/pkg/jwt"
 	"github.com/k-orolevsk-y/gophermart/pkg/router"
+	"github.com/k-orolevsk-y/gophermart/pkg/validation"
 )
 
 type handlerService struct {
 	logger *zap.Logger
 	jwt    *jwt.Jwt
 	pg     *repository.Pg
+
+	bindingWithValidation binding.Binding
 }
 
 type apiService interface {
@@ -26,6 +30,8 @@ func ConfigureHandlersService(api apiService) {
 		logger: api.GetLogger(),
 		jwt:    jwt.New(config.Config.HmacTokenSecret),
 		pg:     api.GetPg(),
+
+		bindingWithValidation: validation.NewBindingWithValidation(),
 	}
 	r := api.GetRouter()
 

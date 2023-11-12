@@ -12,7 +12,7 @@ import (
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/api"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/config"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/repository"
-	"github.com/k-orolevsk-y/gophermart/pkg/logger"
+	"github.com/k-orolevsk-y/gophermart/pkg/log"
 )
 
 func main() {
@@ -20,36 +20,36 @@ func main() {
 		panic(err)
 	}
 
-	log, err := logger.New()
+	logger, err := log.New()
 	if err != nil {
 		panic(err)
 	}
-	defer log.Sync() // nolint
+	defer logger.Sync() // nolint
 
-	log.Info("parsed config", zap.Any("config", config.Config))
+	logger.Info("parsed config", zap.Any("config", config.Config))
 
-	rep, err := repository.NewPG(log)
+	rep, err := repository.NewPG(logger)
 	if err != nil {
-		log.Panic("error connect database", zap.Error(err))
+		logger.Panic("error connect database", zap.Error(err))
 	}
 	defer rep.Close()
 
-	apiService := api.New(log, rep)
+	apiService := api.New(logger, rep)
 	apiService.Configure()
 	apiService.Run()
 
 	quitSignal := make(chan os.Signal, 1)
 	signal.Notify(quitSignal, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
-	log.Info("shutting down gracefully", zap.Any("signal", <-quitSignal))
+	logger.Info("shutting down gracefully", zap.Any("signal", <-quitSignal))
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*15)
 	defer cancel()
 
 	if err = apiService.Shutdown(ctx); err != nil {
-		log.Fatal("fatal error shutdown HTTP server", zap.Error(err))
+		logger.Fatal("fatal error shutdown HTTP server", zap.Error(err))
 	}
 
-	log.Info("http server status", zap.Bool("shutdown", apiService.WaitShutdown(ctx)))
-	log.Info("successfully shutdown server gracefully")
+	logger.Info("http server status", zap.Bool("shutdown", apiService.WaitShutdown(ctx)))
+	logger.Info("successfully shutdown server gracefully")
 }
