@@ -42,7 +42,9 @@ func ConfigureHandlersService(api apiService) {
 
 			routerUser.Use(hs.jwt.Middleware)
 
-			routerUser.POST("/orders", nil)
+			routerUser.GET("/orders", hs.GetOrders)
+			routerUser.POST("/orders", hs.NewOrder)
+
 			routerUser.Group("/balance", func(routerUserBalance router.RouterGroup) {
 				routerUserBalance.GET("/", nil)
 				routerUserBalance.POST("/withdraws", nil)
