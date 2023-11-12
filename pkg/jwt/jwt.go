@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -41,23 +42,21 @@ func (j *Jwt) Encode(user *models.User) (string, error) {
 	return token.SignedString(j.hmacSecret)
 }
 
-func (j *Jwt) Decode(tokenString string) (jwt.Claims, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+func (j *Jwt) Decode(tokenString string) (*Claims, error) {
+	claims := &Claims{}
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 
 		return j.hmacSecret, nil
 	})
-	if err != nil {
-		return nil, err
+
+	if !token.Valid {
+		return claims, errors.New("token is not valid")
 	}
 
-	if claims, ok := token.Claims.(Claims); ok && token.Valid {
-		return claims, nil
-	} else {
-		return nil, err
-	}
+	return claims, err
 }
 
 func (j *Jwt) Middleware(ctx *gin.Context) {
