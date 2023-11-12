@@ -8,6 +8,14 @@ type errorResponse struct {
 	Information any    `json:"information,omitempty"`
 }
 
+func NewBadRequestErrorResponse(information any) errorResponse {
+	return errorResponse{
+		StatusCode:  http.StatusBadRequest,
+		Error:       "Bad request",
+		Information: information,
+	}
+}
+
 func NewInternalServerErrorResponse() errorResponse {
 	return errorResponse{
 		StatusCode:  http.StatusInternalServerError,
@@ -20,6 +28,14 @@ func NewConflictErrorResponse(information any) errorResponse {
 	return errorResponse{
 		StatusCode:  http.StatusConflict,
 		Error:       "Conflict",
+		Information: information,
+	}
+}
+
+func NewUnprocessableEntityErrorResponse(information any) errorResponse {
+	return errorResponse{
+		StatusCode:  http.StatusUnprocessableEntity,
+		Error:       "Unprocessable entity",
 		Information: information,
 	}
 }
