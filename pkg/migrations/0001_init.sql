@@ -3,7 +3,6 @@ CREATE TABLE IF NOT EXISTS users (
     id uuid PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     login varchar(100) NOT NULL UNIQUE,
     password text NOT NULL,
-    balance DOUBLE PRECISION NOT NULL,
     created_at timestamptz NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_users_login ON users (login);

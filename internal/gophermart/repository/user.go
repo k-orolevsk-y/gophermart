@@ -20,8 +20,8 @@ func (pgCU *pgCategoryUser) Create(ctx context.Context, user *models.User) error
 
 	id, err := pgCU.db.ExecContextWithReturnID(
 		ctx,
-		"INSERT INTO users (login, password, balance, created_at) VALUES ($1, $2, $3, $4)",
-		user.Login, user.Password, user.Balance, user.CreatedAt,
+		"INSERT INTO users (login, password, created_at) VALUES ($1, $2, $3)",
+		user.Login, user.Password, user.CreatedAt,
 	)
 	if err != nil {
 		return err
