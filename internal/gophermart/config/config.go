@@ -17,6 +17,7 @@ var Config struct {
 	HmacTokenSecret string `env:"HMAC_TOKEN_SECRET"`
 	MigrationsFlag  bool   `env:"MIGRATIONS_FLAG"`
 	ProductionMode  bool   `env:"PRODUCTION_MODE"`
+	WorkersLimit    int    `env:"WORKERS_LIMIT"`
 }
 
 func ParseConfig() error {
@@ -27,6 +28,7 @@ func ParseConfig() error {
 	flag.StringVar(&Config.HmacTokenSecret, "h", "developerSecretKey", "hmac for encrypt JWT token")
 	flag.BoolVar(&Config.MigrationsFlag, "m", true, "migration flag")
 	flag.BoolVar(&Config.ProductionMode, "p", true, "production mode")
+	flag.IntVar(&Config.WorkersLimit, "l", 8, "workers limit for pool orders")
 
 	flag.Parse()
 

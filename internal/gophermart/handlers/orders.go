@@ -84,5 +84,6 @@ func (hs *handlerService) NewOrder(ctx *gin.Context) {
 		return
 	}
 
+	hs.orderPool.AddJob(order)
 	ctx.AbortWithStatus(http.StatusAccepted)
 }
