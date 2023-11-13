@@ -15,7 +15,7 @@ import (
 func (hs *handlerService) Register(ctx *gin.Context) {
 	var data struct {
 		Login    string `json:"login" validate:"required|minLen:3"`
-		Password string `json:"password" validate:"required|minLen:6|maxLen:30"`
+		Password string `json:"password" validate:"required|minLen:6|maxLen:64"`
 	}
 
 	if err := ctx.ShouldBindWith(&data, hs.bindingWithValidation); err != nil {
@@ -51,7 +51,7 @@ func (hs *handlerService) Register(ctx *gin.Context) {
 func (hs *handlerService) Login(ctx *gin.Context) {
 	var data struct {
 		Login    string `json:"login" validate:"required|minLen:3"`
-		Password string `json:"password" validate:"required|minLen:6|maxLen:30"`
+		Password string `json:"password" validate:"required|minLen:6|maxLen:64"`
 	}
 
 	if err := ctx.ShouldBindWith(&data, hs.bindingWithValidation); err != nil {
