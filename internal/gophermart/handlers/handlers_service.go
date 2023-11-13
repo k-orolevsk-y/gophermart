@@ -46,8 +46,8 @@ func ConfigureHandlersService(api apiService) {
 			routerUser.POST("/orders", hs.NewOrder)
 
 			routerUser.Group("/balance", func(routerUserBalance router.RouterGroup) {
-				routerUserBalance.GET("/", nil)
-				routerUserBalance.POST("/withdraws", nil)
+				routerUserBalance.GET("/", hs.GetBalance)
+				routerUserBalance.POST("/withdraw", hs.NewBalanceWithdrawn)
 			})
 			routerUser.GET("/withdraws", nil)
 		})
