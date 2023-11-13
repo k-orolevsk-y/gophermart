@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/models"
@@ -19,36 +20,32 @@ func (pool *OrderPool) worker() {
 }
 
 func (pool *OrderPool) workOrder(order models.Order) {
-	funcError := func(err error, order models.Order) {
-		order.Status = "INVALID"
-		if e := pool.pg.Order().Edit(context.Background(), &order); e != nil {
-			err = e
-		}
-
-		pool.results <- workerResult{
-			err:   err,
-			order: order,
-		}
-	}
-
 	for order.Status != "PROCESSED" && order.Status != "INVALID" {
+
 		result, err := pool.getAccrualSystemResult(order.ID)
 		if err != nil {
-			funcError(err, order)
+			pool.results <- workerResult{
+				err:   err,
+				order: order,
+			}
 			return
 		}
 
-		if result.Status != "REGISTERED" && result.Status != order.Status {
+		if result.Status != order.Status {
 			order.Status = result.Status
 			order.Accrual = &result.Accrual
 
 			if err = pool.pg.Order().Edit(context.Background(), &order); err != nil {
-				funcError(err, order)
+				pool.results <- workerResult{
+					err:   err,
+					order: order,
+				}
 				return
 			}
 		}
 
 		time.Sleep(time.Second * 2)
+
 	}
 
 	pool.results <- workerResult{
@@ -79,5 +76,6 @@ func (pool *OrderPool) getAccrualSystemResult(orderID int64) (*accrualSystemResu
 		return nil, errors.New("invalid response")
 	}
 
+	result.Status = strings.ReplaceAll(result.Status, "REGISTERED", "PROCESSING")
 	return result, nil
 }
