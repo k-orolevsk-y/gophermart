@@ -49,7 +49,7 @@ func ConfigureHandlersService(api apiService) {
 				routerUserBalance.GET("/", hs.GetBalance)
 				routerUserBalance.POST("/withdraw", hs.NewBalanceWithdrawn)
 			})
-			routerUser.GET("/withdraws", nil)
+			routerUser.GET("/withdrawals", hs.GetWithdrawals)
 		})
 	})
 
