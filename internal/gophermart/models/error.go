@@ -24,6 +24,14 @@ func NewInternalServerErrorResponse() errorResponse {
 	}
 }
 
+func NewPaymentRequiredErrorResponse(information any) errorResponse {
+	return errorResponse{
+		StatusCode:  http.StatusPaymentRequired,
+		Error:       "Payment required",
+		Information: information,
+	}
+}
+
 func NewConflictErrorResponse(information any) errorResponse {
 	return errorResponse{
 		StatusCode:  http.StatusConflict,
