@@ -19,37 +19,35 @@ var (
 	ErrorInsufficientFunds = errors.New("error insufficient funds in account")
 )
 
-func (pgCUW *pgCategoryUserWithdraw) Create(ctx context.Context, withdraw *models.UserWithdraw, user *models.User) error {
-	withdraw.ProcessedAt = time.Now()
-
+func (pgCUW *pgCategoryUserWithdraw) Create(ctx context.Context, withdraw *models.UserWithdraw) error {
 	tx, err := pgCUW.db.Beginx()
 	if err != nil {
 		return err
 	}
 
+	var balance float64
+	if err = tx.GetContext(ctx, &balance, "SELECT COALESCE(SUM(accrual), 0.0) FROM orders WHERE user_id = $1", withdraw.UserID); err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	if balance < withdraw.Sum {
+		_ = tx.Rollback()
+		return ErrorInsufficientFunds
+	}
+
+	withdraw.ProcessedAt = time.Now()
 	id, err := tx.ExecContextWithReturnID(
 		ctx,
 		"INSERT INTO users_withdrawals (user_id, order_id, sum, processed_at) VALUES ($1, $2, $3, $4)",
 		withdraw.UserID, withdraw.OrderID, withdraw.Sum, withdraw.ProcessedAt,
 	)
 	if err != nil {
+		_ = tx.Rollback()
 		return err
 	}
 
 	withdraw.ID, _ = uuid.Parse(id.(string))
-
-	if user.Balance < withdraw.Sum {
-		if err = tx.Rollback(); err != nil {
-			return err
-		}
-		return ErrorInsufficientFunds
-	}
-
-	user.Balance -= withdraw.Sum
-	if _, err = tx.ExecContext(ctx, "UPDATE users SET balance = $1 WHERE id = $2", user.Balance, user.ID); err != nil {
-		return err
-	}
-
 	return tx.Commit()
 }
 
