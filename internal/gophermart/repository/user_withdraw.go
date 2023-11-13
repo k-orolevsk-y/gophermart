@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -19,6 +20,8 @@ var (
 )
 
 func (pgCUW *pgCategoryUserWithdraw) Create(ctx context.Context, withdraw *models.UserWithdraw, user *models.User) error {
+	withdraw.ProcessedAt = time.Now()
+
 	tx, err := pgCUW.db.Beginx()
 	if err != nil {
 		return err
@@ -51,7 +54,7 @@ func (pgCUW *pgCategoryUserWithdraw) Create(ctx context.Context, withdraw *model
 }
 
 func (pgCUW *pgCategoryUserWithdraw) GetAllByUserID(ctx context.Context, userID uuid.UUID) ([]models.UserWithdraw, error) {
-	var userWithdrawals []models.UserWithdraw
+	userWithdrawals := make([]models.UserWithdraw, 0)
 	err := pgCUW.db.SelectContext(ctx, &userWithdrawals, "SELECT * FROM users_withdrawals WHERE user_id = $1", userID)
 
 	return userWithdrawals, err

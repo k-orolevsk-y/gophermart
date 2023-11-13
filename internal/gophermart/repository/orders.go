@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -19,6 +20,8 @@ const (
 )
 
 func (pgCO *pgCategoryOrders) Create(ctx context.Context, order *models.Order) error {
+	order.UploadedAt = time.Now()
+
 	_, err := pgCO.db.ExecContext(
 		ctx,
 		"INSERT INTO orders (id, user_id, status, accrual, uploaded_at) VALUES ($1, $2, $3, $4, $5)",
