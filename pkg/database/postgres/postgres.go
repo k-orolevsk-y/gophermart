@@ -2,7 +2,7 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
+	"database/sql/driver"
 	"fmt"
 	"io"
 	"time"
@@ -20,8 +20,17 @@ type PgSQL interface {
 	sqlx.PreparerContext
 	io.Closer
 
-	Begin() (*sql.Tx, error)
-	Beginx() (*sqlx.Tx, error)
+	Beginx() (TxPgSQL, error)
+	GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
+	ExecContextWithReturnID(ctx context.Context, query string, args ...interface{}) (interface{}, error)
+}
+
+type TxPgSQL interface {
+	sqlx.ExtContext
+	sqlx.PreparerContext
+	driver.Tx
+
 	GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
 	SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error
 	ExecContextWithReturnID(ctx context.Context, query string, args ...interface{}) (interface{}, error)
@@ -29,6 +38,10 @@ type PgSQL interface {
 
 type postgresDatabase struct {
 	*sqlx.DB
+}
+
+type postgresTx struct {
+	*sqlx.Tx
 }
 
 func New(logger *zap.Logger) (PgSQL, error) {
@@ -53,11 +66,35 @@ func New(logger *zap.Logger) (PgSQL, error) {
 	return &postgresDatabase{db}, err
 }
 
+func (db *postgresDatabase) Beginx() (TxPgSQL, error) {
+	tx, err := db.DB.Beginx()
+	if err != nil {
+		return nil, err
+	}
+
+	return &postgresTx{
+		Tx: tx,
+	}, nil
+}
+
 func (db *postgresDatabase) ExecContextWithReturnID(ctx context.Context, query string, args ...interface{}) (interface{}, error) {
 	query = fmt.Sprintf("%s RETURNING id", query)
 
 	var id interface{}
 	row := db.QueryRowContext(ctx, query, args...)
+	if row.Err() != nil {
+		return nil, row.Err()
+	}
+
+	err := row.Scan(&id)
+	return id, err
+}
+
+func (tx *postgresTx) ExecContextWithReturnID(ctx context.Context, query string, args ...interface{}) (interface{}, error) {
+	query = fmt.Sprintf("%s RETURNING id", query)
+
+	var id interface{}
+	row := tx.QueryRowContext(ctx, query, args...)
 	if row.Err() != nil {
 		return nil, row.Err()
 	}
