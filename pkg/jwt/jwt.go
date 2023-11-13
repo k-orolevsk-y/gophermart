@@ -52,6 +52,10 @@ func (j *Jwt) Decode(tokenString string) (*Claims, error) {
 		return j.hmacSecret, nil
 	})
 
+	if err != nil {
+		return nil, err
+	}
+
 	if !token.Valid {
 		return claims, errors.New("token is not valid")
 	}
@@ -64,7 +68,7 @@ func (j *Jwt) Middleware(ctx *gin.Context) {
 	tokenString = strings.ReplaceAll(tokenString, "Bearer ", "")
 
 	if claims, err := j.Decode(tokenString); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, "An invalid token was transferred or it has expired")
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, models.NewAuthorizationErrorResponse("An invalid token was transferred or it has expired"))
 	} else {
 		ctx.Set("tokenClaims", claims)
 	}
