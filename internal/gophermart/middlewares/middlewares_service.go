@@ -21,4 +21,5 @@ func ConfigureMiddlewaresService(api apiService) {
 	}
 
 	api.GetRouter().Use(ms.Logger)
+	api.GetRouter().Use(ms.Compress)
 }
