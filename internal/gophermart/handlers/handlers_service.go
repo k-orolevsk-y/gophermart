@@ -5,6 +5,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/config"
+	orderpool "github.com/k-orolevsk-y/gophermart/internal/gophermart/order_pool"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/repository"
 	"github.com/k-orolevsk-y/gophermart/pkg/jwt"
 	"github.com/k-orolevsk-y/gophermart/pkg/router"
@@ -12,9 +13,10 @@ import (
 )
 
 type handlerService struct {
-	logger *zap.Logger
-	jwt    *jwt.Jwt
-	pg     *repository.Pg
+	logger    *zap.Logger
+	jwt       *jwt.Jwt
+	pg        *repository.Pg
+	orderPool *orderpool.OrderPool
 
 	bindingWithValidation binding.Binding
 }
@@ -23,13 +25,15 @@ type apiService interface {
 	GetRouter() *router.Router
 	GetLogger() *zap.Logger
 	GetPg() *repository.Pg
+	GetOrderPool() *orderpool.OrderPool
 }
 
 func ConfigureHandlersService(api apiService) {
 	hs := &handlerService{
-		logger: api.GetLogger(),
-		jwt:    jwt.New(config.Config.HmacTokenSecret),
-		pg:     api.GetPg(),
+		logger:    api.GetLogger(),
+		jwt:       jwt.New(config.Config.HmacTokenSecret),
+		pg:        api.GetPg(),
+		orderPool: api.GetOrderPool(),
 
 		bindingWithValidation: validation.NewBindingWithValidation(),
 	}

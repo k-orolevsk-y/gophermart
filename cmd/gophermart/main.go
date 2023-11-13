@@ -11,6 +11,7 @@ import (
 
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/api"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/config"
+	orderpool "github.com/k-orolevsk-y/gophermart/internal/gophermart/order_pool"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/repository"
 	"github.com/k-orolevsk-y/gophermart/pkg/log"
 )
@@ -34,7 +35,10 @@ func main() {
 	}
 	defer rep.Close()
 
-	apiService := api.New(logger, rep)
+	pool := orderpool.NewOrderPool(logger, rep)
+	pool.Run()
+
+	apiService := api.New(logger, pool, rep)
 	apiService.Configure()
 	apiService.Run()
 
@@ -49,6 +53,9 @@ func main() {
 	if err = apiService.Shutdown(ctx); err != nil {
 		logger.Fatal("fatal error shutdown HTTP server", zap.Error(err))
 	}
+
+	pool.Close()
+	logger.Info("orders pool closed")
 
 	logger.Info("http server status", zap.Bool("shutdown", apiService.WaitShutdown(ctx)))
 	logger.Info("successfully shutdown server gracefully")

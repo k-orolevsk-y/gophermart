@@ -31,6 +31,23 @@ func (pgCO *pgCategoryOrders) Create(ctx context.Context, order *models.Order) e
 	return err
 }
 
+func (pgCO *pgCategoryOrders) Edit(ctx context.Context, order *models.Order) error {
+	_, err := pgCO.db.ExecContext(
+		ctx,
+		"UPDATE orders SET status = $1, accrual = $2 WHERE id = $3",
+		order.Status, order.Accrual, order.ID,
+	)
+
+	return err
+}
+
+func (pgCO *pgCategoryOrders) GetAccrualSumByUserID(ctx context.Context, userID uuid.UUID) (float64, error) {
+	var sum float64
+	err := pgCO.db.GetContext(ctx, &sum, "SELECT COALESCE(SUM(accrual), 0.0) FROM orders WHERE user_id = $1", userID)
+
+	return sum, err
+}
+
 func (pgCO *pgCategoryOrders) GetAllByUserID(ctx context.Context, userID uuid.UUID) ([]models.Order, error) {
 	orders := make([]models.Order, 0)
 	err := pgCO.db.SelectContext(ctx, &orders, "SELECT * FROM orders WHERE user_id = $1", userID)
