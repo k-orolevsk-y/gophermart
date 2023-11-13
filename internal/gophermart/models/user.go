@@ -13,7 +13,6 @@ type User struct {
 	ID        uuid.UUID `db:"id"`
 	Login     string    `db:"login"`
 	Password  string    `db:"password"`
-	Balance   float64   `db:"balance"`
 	CreatedAt time.Time `db:"created_at"`
 }
 
