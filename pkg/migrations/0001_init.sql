@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS users_withdrawals (
     id uuid PRIMARY KEY NOT NULL DEFAULT gen_random_uuid(),
     user_id uuid NOT NULL,
     order_id bigint NOT NULL,
-    sum int NOT NULL DEFAULT 0,
+    sum DOUBLE PRECISION NOT NULL DEFAULT 0,
     processed_at timestamptz NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_users_withdrawals_userId_orderId ON users_withdrawals (user_id, order_id);
