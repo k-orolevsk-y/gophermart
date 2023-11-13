@@ -27,31 +27,6 @@ func (hs *handlerService) GetOrders(ctx *gin.Context) {
 	ctx.AbortWithStatusJSON(http.StatusOK, orders)
 }
 
-//Хендлер: `POST /api/user/orders`.
-//
-//Хендлер доступен только аутентифицированным пользователям. Номером заказа является последовательность цифр произвольной длины.
-//
-//Номер заказа может быть проверен на корректность ввода с помощью [алгоритма Луна](https://ru.wikipedia.org/wiki/Алгоритм_Луна){target="_blank"}.
-//
-//Формат запроса:
-//
-//```
-//POST /api/user/orders HTTP/1.1
-//Content-Type: text/plain
-//...
-//
-//12345678903
-//```
-//Возможные коды ответа:
-//
-//- `200` — номер заказа уже был загружен этим пользователем;
-//- `202` — новый номер заказа принят в обработку;
-//- `400` — неверный формат запроса;
-//- `401` — пользователь не аутентифицирован;
-//- `409` — номер заказа уже был загружен другим пользователем;
-//- `422` — неверный формат номера заказа;
-//- `500` — внутренняя ошибка сервера.
-
 func (hs *handlerService) NewOrder(ctx *gin.Context) {
 	if ctx.ContentType() != "text/plain" {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, models.NewBadRequestErrorResponse("An unsupported request body was sent"))
@@ -109,5 +84,5 @@ func (hs *handlerService) NewOrder(ctx *gin.Context) {
 		return
 	}
 
-	ctx.AbortWithStatus(http.StatusCreated)
+	ctx.AbortWithStatus(http.StatusAccepted)
 }
