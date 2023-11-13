@@ -1,9 +1,9 @@
 package handlers
 
 import (
+	"errors"
 	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 
@@ -45,9 +45,14 @@ func (hs *handlerService) NewOrder(ctx *gin.Context) {
 		return
 	}
 
-	orderNumber, err := strconv.ParseInt(body, 10, 64)
+	orderNumber, err := hs.CheckNumberAlgorithmLuna(body)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, models.NewValidationErrorResponse("The order number is not a number"))
+		if errors.Is(err, errInvalidTypeOfNumberForAlogirthmLuna) {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, models.NewValidationErrorResponse("The order number is not a number"))
+		} else {
+			ctx.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.NewUnprocessableEntityErrorResponse("The order number does not match the Luna algorithm."))
+		}
+
 		return
 	}
 
@@ -62,11 +67,6 @@ func (hs *handlerService) NewOrder(ctx *gin.Context) {
 		UserID:  tokenClaims.UserID,
 		Status:  "NEW",
 		Accrual: nil,
-	}
-
-	if !order.CheckValidID() {
-		ctx.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.NewUnprocessableEntityErrorResponse("The order number does not match the Luna algorithm."))
-		return
 	}
 
 	if err = hs.pg.Order().Create(ctx, &order); err != nil {
