@@ -1,7 +1,9 @@
 package config
 
 import (
+	"errors"
 	"flag"
+	"os"
 
 	"github.com/caarlos0/env/v6"
 	"github.com/joho/godotenv"
@@ -23,12 +25,12 @@ func ParseConfig() error {
 	flag.StringVar(&Config.AccrualSystemAddress, "r", "", "address of the accrual calculation system")
 
 	flag.StringVar(&Config.HmacTokenSecret, "h", "developerSecretKey", "hmac for encrypt JWT token")
-	flag.BoolVar(&Config.MigrationsFlag, "m", false, "migration flag")
+	flag.BoolVar(&Config.MigrationsFlag, "m", true, "migration flag")
 	flag.BoolVar(&Config.ProductionMode, "p", true, "production mode")
 
 	flag.Parse()
 
-	if err := godotenv.Load(); err != nil {
+	if err := godotenv.Load(); err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
 	return env.Parse(&Config)
