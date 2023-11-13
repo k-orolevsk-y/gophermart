@@ -12,29 +12,32 @@ import (
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/config"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/handlers"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/middlewares"
+	orderpool "github.com/k-orolevsk-y/gophermart/internal/gophermart/order_pool"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/repository"
 	"github.com/k-orolevsk-y/gophermart/pkg/router"
 )
 
 type APIService struct {
-	router *router.Router
-	logger *zap.Logger
-	pg     *repository.Pg
+	router    *router.Router
+	logger    *zap.Logger
+	orderPool *orderpool.OrderPool
+	pg        *repository.Pg
 
 	srv       *http.Server
 	srvClosed bool
 }
 
-func New(logger *zap.Logger, pg *repository.Pg) *APIService {
+func New(logger *zap.Logger, orderPool *orderpool.OrderPool, pg *repository.Pg) *APIService {
 	if config.Config.ProductionMode {
 		gin.SetMode(gin.ReleaseMode)
 	}
 	gin.DefaultWriter = router.NewRouterLogger(logger)
 
 	return &APIService{
-		router: router.New(),
-		logger: logger,
-		pg:     pg,
+		router:    router.New(),
+		logger:    logger,
+		orderPool: orderPool,
+		pg:        pg,
 	}
 }
 
@@ -49,6 +52,10 @@ func (a *APIService) GetRouter() *router.Router {
 
 func (a *APIService) GetLogger() *zap.Logger {
 	return a.logger
+}
+
+func (a *APIService) GetOrderPool() *orderpool.OrderPool {
+	return a.orderPool
 }
 
 func (a *APIService) GetPg() *repository.Pg {
