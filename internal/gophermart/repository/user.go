@@ -31,6 +31,13 @@ func (pgCU *pgCategoryUser) Create(ctx context.Context, user *models.User) error
 	return nil
 }
 
+func (pgCU *pgCategoryUser) GetByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
+	var user models.User
+	err := pgCU.db.GetContext(ctx, &user, "SELECT * FROM users WHERE id = $1", id)
+
+	return &user, err
+}
+
 func (pgCU *pgCategoryUser) GetByLogin(ctx context.Context, login string) (*models.User, error) {
 	var user models.User
 	err := pgCU.db.GetContext(ctx, &user, "SELECT * FROM users WHERE lower(login) = lower($1)", login)
