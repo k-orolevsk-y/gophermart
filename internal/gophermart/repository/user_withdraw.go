@@ -11,9 +11,17 @@ import (
 	"github.com/k-orolevsk-y/gophermart/pkg/database/postgres"
 )
 
-type pgCategoryUserWithdraw struct {
-	db postgres.PgSQL
-}
+type (
+	RepositoryCategoryUserWithdraw interface {
+		Create(ctx context.Context, withdraw *models.UserWithdraw) error
+		GetAllByUserID(ctx context.Context, userID uuid.UUID) ([]models.UserWithdraw, error)
+		GetWithdrawnSumByUserID(ctx context.Context, userID uuid.UUID) (float64, error)
+	}
+
+	pgCategoryUserWithdraw struct {
+		db postgres.PgSQL
+	}
+)
 
 var (
 	ErrorInsufficientFunds = errors.New("error insufficient funds in account")

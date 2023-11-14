@@ -16,7 +16,7 @@ import (
 type handlerService struct {
 	logger    *zap.Logger
 	jwt       *jwt.Jwt
-	pg        *repository.Pg
+	pg        repository.Repository
 	orderPool *orderpool.OrderPool
 
 	bindingWithValidation binding.Binding
@@ -25,7 +25,7 @@ type handlerService struct {
 type apiService interface {
 	GetRouter() *router.Router
 	GetLogger() *zap.Logger
-	GetPg() *repository.Pg
+	GetPg() repository.Repository
 	GetOrderPool() *orderpool.OrderPool
 }
 

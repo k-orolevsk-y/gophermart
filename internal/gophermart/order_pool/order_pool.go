@@ -18,7 +18,7 @@ type OrderPool struct {
 
 	client *resty.Client
 	logger *zap.Logger
-	pg     *repository.Pg
+	pg     repository.Repository
 
 	wg     sync.WaitGroup
 	closed bool
@@ -29,7 +29,7 @@ type workerResult struct {
 	order models.Order
 }
 
-func NewOrderPool(logger *zap.Logger, pg *repository.Pg) *OrderPool {
+func NewOrderPool(logger *zap.Logger, pg repository.Repository) *OrderPool {
 	return &OrderPool{
 		client: resty.New().SetBaseURL(config.Config.AccrualSystemAddress),
 		logger: logger,

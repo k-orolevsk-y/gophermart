@@ -21,13 +21,13 @@ type APIService struct {
 	router    *router.Router
 	logger    *zap.Logger
 	orderPool *orderpool.OrderPool
-	pg        *repository.Pg
+	pg        repository.Repository
 
 	srv       *http.Server
 	srvClosed bool
 }
 
-func New(logger *zap.Logger, orderPool *orderpool.OrderPool, pg *repository.Pg) *APIService {
+func New(logger *zap.Logger, orderPool *orderpool.OrderPool, pg repository.Repository) *APIService {
 	if config.Config.ProductionMode {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -58,7 +58,7 @@ func (a *APIService) GetOrderPool() *orderpool.OrderPool {
 	return a.orderPool
 }
 
-func (a *APIService) GetPg() *repository.Pg {
+func (a *APIService) GetPg() repository.Repository {
 	return a.pg
 }
 
