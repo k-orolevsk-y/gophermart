@@ -25,7 +25,7 @@ func (hs *handlerService) GetTokenClaims(ctx *gin.Context) (*jwt.Claims, bool) {
 
 var (
 	errInvalidNumberForAlgorithmLuna       = errors.New("invalid number")
-	errInvalidTypeOfNumberForAlogirthmLuna = errors.New("invalid type")
+	errInvalidTypeOfNumberForAlgorithmLuna = errors.New("invalid type")
 )
 
 func (hs *handlerService) CheckNumberAlgorithmLuna(n any) (int64, error) {
@@ -38,7 +38,7 @@ func (hs *handlerService) CheckNumberAlgorithmLuna(n any) (int64, error) {
 		number, err = strconv.ParseInt(num, 10, 64)
 
 		if err != nil {
-			return 0, errInvalidTypeOfNumberForAlogirthmLuna
+			return 0, errInvalidTypeOfNumberForAlgorithmLuna
 		}
 	}
 

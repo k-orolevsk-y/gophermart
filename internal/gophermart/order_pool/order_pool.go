@@ -67,9 +67,9 @@ func (pool *OrderPool) workerResults() {
 		select {
 		case result := <-pool.results:
 			if result.err != nil {
-				pool.logger.Error("Error in order pool", zap.Any("order", result.order), zap.Error(result.err))
+				pool.logger.Error("error in order pool", zap.Any("order", result.order), zap.Error(result.err))
 			} else {
-				pool.logger.Debug("Success updated order in pool", zap.Any("order", result.order))
+				pool.logger.Debug("success updated order in pool", zap.Any("order", result.order))
 			}
 		default:
 			if pool.closed {

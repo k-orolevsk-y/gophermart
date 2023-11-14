@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/models"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/repository"
@@ -19,12 +20,14 @@ func (hs *handlerService) GetBalance(ctx *gin.Context) {
 
 	sumWithdrawn, err := hs.pg.UserWithdraw().GetWithdrawnSumByUserID(ctx, tokenClaims.UserID)
 	if err != nil {
+		hs.logger.Error("error get sum withdrawn", zap.Error(err))
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		return
 	}
 
 	sumAccrual, err := hs.pg.Order().GetAccrualSumByUserID(ctx, tokenClaims.UserID)
 	if err != nil {
+		hs.logger.Error("error get sum accrual", zap.Error(err))
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		return
 	}
@@ -45,7 +48,7 @@ func (hs *handlerService) NewBalanceWithdrawn(ctx *gin.Context) {
 
 	orderNumber, err := hs.CheckNumberAlgorithmLuna(data.Order)
 	if err != nil {
-		if errors.Is(err, errInvalidTypeOfNumberForAlogirthmLuna) {
+		if errors.Is(err, errInvalidTypeOfNumberForAlgorithmLuna) {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, models.NewValidationErrorResponse("The order number is not a number"))
 		} else {
 			ctx.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.NewUnprocessableEntityErrorResponse("The order number does not match the Luna algorithm."))
@@ -69,6 +72,7 @@ func (hs *handlerService) NewBalanceWithdrawn(ctx *gin.Context) {
 		if errors.Is(err, repository.ErrorInsufficientFunds) {
 			ctx.AbortWithStatusJSON(http.StatusPaymentRequired, models.NewPaymentRequiredErrorResponse("Insufficient funds in the account"))
 		} else {
+			hs.logger.Error("error create user withdraw", zap.Error(err))
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		}
 		return

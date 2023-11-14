@@ -29,7 +29,7 @@ func (ms *middlewaresService) Compress(ctx *gin.Context) {
 
 	gz, err := gzip.NewWriterLevel(ctx.Writer, gzip.BestSpeed)
 	if err != nil {
-		ms.logger.Error("Failed to create writer with compression", zap.Error(err))
+		ms.logger.Error("failed to create writer with compression", zap.Error(err))
 		return
 	}
 	defer gz.Close()

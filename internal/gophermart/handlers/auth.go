@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgerrcode"
+	"go.uber.org/zap"
 
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/models"
 )
@@ -32,6 +33,7 @@ func (hs *handlerService) Register(ctx *gin.Context) {
 		if pgerrcode.IsIntegrityConstraintViolation(pgError.Code) {
 			ctx.AbortWithStatusJSON(http.StatusConflict, models.NewConflictErrorResponse("A user with this login is already registered"))
 		} else {
+			hs.logger.Error("error create user", zap.Error(err))
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		}
 
@@ -40,6 +42,7 @@ func (hs *handlerService) Register(ctx *gin.Context) {
 
 	tokenString, err := hs.jwt.Encode(&user)
 	if err != nil {
+		hs.logger.Error("error encode token", zap.Error(err))
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		return
 	}
@@ -64,6 +67,7 @@ func (hs *handlerService) Login(ctx *gin.Context) {
 		if errors.Is(err, sql.ErrNoRows) {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, models.NewAuthorizationErrorResponse("Invalid login or password"))
 		} else {
+			hs.logger.Error("error get user", zap.Error(err))
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		}
 
@@ -77,6 +81,7 @@ func (hs *handlerService) Login(ctx *gin.Context) {
 
 	token, err := hs.jwt.Encode(user)
 	if err != nil {
+		hs.logger.Error("error encode token", zap.Error(err))
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		ctx.Abort()
 
