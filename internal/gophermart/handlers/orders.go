@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/models"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/repository"
@@ -20,6 +21,7 @@ func (hs *handlerService) GetOrders(ctx *gin.Context) {
 
 	orders, err := hs.pg.Order().GetAllByUserID(ctx, tokenClaims.UserID)
 	if err != nil {
+		hs.logger.Error("error get user orders", zap.Error(err))
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		return
 	}
@@ -47,7 +49,7 @@ func (hs *handlerService) NewOrder(ctx *gin.Context) {
 
 	orderNumber, err := hs.CheckNumberAlgorithmLuna(body)
 	if err != nil {
-		if errors.Is(err, errInvalidTypeOfNumberForAlogirthmLuna) {
+		if errors.Is(err, errInvalidTypeOfNumberForAlgorithmLuna) {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, models.NewValidationErrorResponse("The order number is not a number"))
 		} else {
 			ctx.AbortWithStatusJSON(http.StatusUnprocessableEntity, models.NewUnprocessableEntityErrorResponse("The order number does not match the Luna algorithm."))
@@ -78,6 +80,7 @@ func (hs *handlerService) NewOrder(ctx *gin.Context) {
 		case repository.ErrorOrderByOtherUser:
 			ctx.AbortWithStatusJSON(http.StatusConflict, models.NewConflictErrorResponse("An order with this number has already been uploaded by another user"))
 		default:
+			hs.logger.Error("error create order", zap.Error(err))
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		}
 

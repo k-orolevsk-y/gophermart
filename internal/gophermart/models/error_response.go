@@ -8,6 +8,14 @@ type errorResponse struct {
 	Information any    `json:"information,omitempty"`
 }
 
+func NewAuthorizationErrorResponse(information any) errorResponse {
+	return errorResponse{
+		StatusCode:  http.StatusUnauthorized,
+		Error:       "Authorization failed",
+		Information: information,
+	}
+}
+
 func NewBadRequestErrorResponse(information any) errorResponse {
 	return errorResponse{
 		StatusCode:  http.StatusBadRequest,
@@ -16,11 +24,11 @@ func NewBadRequestErrorResponse(information any) errorResponse {
 	}
 }
 
-func NewInternalServerErrorResponse() errorResponse {
+func NewValidationErrorResponse(information any) errorResponse {
 	return errorResponse{
-		StatusCode:  http.StatusInternalServerError,
-		Error:       "Internal server error",
-		Information: "An error occurred that could not be processed, please try again later",
+		StatusCode:  http.StatusBadRequest,
+		Error:       "Validation failed",
+		Information: information,
 	}
 }
 
@@ -48,18 +56,10 @@ func NewUnprocessableEntityErrorResponse(information any) errorResponse {
 	}
 }
 
-func NewValidationErrorResponse(information any) errorResponse {
+func NewInternalServerErrorResponse() errorResponse {
 	return errorResponse{
-		StatusCode:  http.StatusBadRequest,
-		Error:       "Validation failed",
-		Information: information,
-	}
-}
-
-func NewAuthorizationErrorResponse(information any) errorResponse {
-	return errorResponse{
-		StatusCode:  http.StatusUnauthorized,
-		Error:       "Authorization failed",
-		Information: information,
+		StatusCode:  http.StatusInternalServerError,
+		Error:       "Internal server error",
+		Information: "An error occurred that could not be processed, please try again later",
 	}
 }
