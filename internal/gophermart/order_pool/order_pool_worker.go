@@ -66,7 +66,7 @@ func (pool *OrderPool) getAccrualSystemResult(orderID int64) (*accrualSystemResu
 		Get(fmt.Sprintf("/api/orders/%d", orderID))
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error request to accrual: %w", err)
 	} else if resp.StatusCode() != http.StatusOK {
 		return nil, errors.New("invalid http status (not ok)")
 	}

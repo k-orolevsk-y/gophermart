@@ -12,7 +12,7 @@ import (
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/config"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/handlers"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/middlewares"
-	orderpool "github.com/k-orolevsk-y/gophermart/internal/gophermart/order_pool"
+	"github.com/k-orolevsk-y/gophermart/internal/gophermart/order_pool"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/repository"
 	"github.com/k-orolevsk-y/gophermart/pkg/router"
 )

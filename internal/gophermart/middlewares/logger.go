@@ -20,7 +20,7 @@ func (ms *middlewaresService) Logger(ctx *gin.Context) {
 	userAgent := ctx.Request.UserAgent()
 
 	ms.logger.Info(
-		"Request",
+		"request",
 		zap.Stringer("uri", uri),
 		zap.String("method", method),
 		zap.Duration("duration", duration),
