@@ -10,9 +10,17 @@ import (
 	"github.com/k-orolevsk-y/gophermart/pkg/database/postgres"
 )
 
-type pgCategoryUser struct {
-	db postgres.PgSQL
-}
+type (
+	RepositoryCategoryUser interface {
+		Create(ctx context.Context, user *models.User) error
+		GetByID(ctx context.Context, id uuid.UUID) (*models.User, error)
+		GetByLogin(ctx context.Context, login string) (*models.User, error)
+	}
+
+	pgCategoryUser struct {
+		db postgres.PgSQL
+	}
+)
 
 func (pgCU *pgCategoryUser) Create(ctx context.Context, user *models.User) error {
 	user.EncryptPassword()

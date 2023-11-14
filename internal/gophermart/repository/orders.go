@@ -10,9 +10,18 @@ import (
 	"github.com/k-orolevsk-y/gophermart/pkg/database/postgres"
 )
 
-type pgCategoryOrders struct {
-	db postgres.PgSQL
-}
+type (
+	RepositoryCategoryOrders interface {
+		Create(ctx context.Context, order *models.Order) error
+		Edit(ctx context.Context, order *models.Order) error
+		GetAccrualSumByUserID(ctx context.Context, userID uuid.UUID) (float64, error)
+		GetAllByUserID(ctx context.Context, userID uuid.UUID) ([]models.Order, error)
+	}
+
+	pgCategoryOrders struct {
+		db postgres.PgSQL
+	}
+)
 
 const (
 	ErrorOrderByThisUser  = "order already created by this user"

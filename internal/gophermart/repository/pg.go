@@ -8,34 +8,45 @@ import (
 	"github.com/k-orolevsk-y/gophermart/pkg/database/postgres"
 )
 
-type Pg struct {
-	db postgres.PgSQL
-}
+type (
+	Repository interface {
+		User() RepositoryCategoryUser
+		Order() RepositoryCategoryOrders
+		UserWithdraw() RepositoryCategoryUserWithdraw
 
-func NewPG(logger *zap.Logger) (*Pg, error) {
+		ParsePgError(err error) *pgconn.PgError
+		Close() error
+	}
+
+	pg struct {
+		db postgres.PgSQL
+	}
+)
+
+func NewPG(logger *zap.Logger) (Repository, error) {
 	db, err := postgres.New(logger)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Pg{
+	return &pg{
 		db: db,
 	}, nil
 }
 
-func (p *Pg) User() *pgCategoryUser {
+func (p *pg) User() RepositoryCategoryUser {
 	return &pgCategoryUser{db: p.db}
 }
 
-func (p *Pg) Order() *pgCategoryOrders {
+func (p *pg) Order() RepositoryCategoryOrders {
 	return &pgCategoryOrders{db: p.db}
 }
 
-func (p *Pg) UserWithdraw() *pgCategoryUserWithdraw {
+func (p *pg) UserWithdraw() RepositoryCategoryUserWithdraw {
 	return &pgCategoryUserWithdraw{db: p.db}
 }
 
-func (p *Pg) ParsePgError(err error) *pgconn.PgError {
+func (p *pg) ParsePgError(err error) *pgconn.PgError {
 	var pgError *pgconn.PgError
 	if !errors.As(err, &pgError) {
 		return &pgconn.PgError{}
@@ -44,6 +55,6 @@ func (p *Pg) ParsePgError(err error) *pgconn.PgError {
 	return pgError
 }
 
-func (p *Pg) Close() error {
+func (p *pg) Close() error {
 	return p.db.Close()
 }
