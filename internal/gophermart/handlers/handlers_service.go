@@ -1,11 +1,12 @@
 package handlers
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 	"go.uber.org/zap"
 
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/config"
-	orderpool "github.com/k-orolevsk-y/gophermart/internal/gophermart/order_pool"
+	"github.com/k-orolevsk-y/gophermart/internal/gophermart/order_pool"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/repository"
 	"github.com/k-orolevsk-y/gophermart/pkg/jwt"
 	"github.com/k-orolevsk-y/gophermart/pkg/router"
@@ -60,4 +61,5 @@ func ConfigureHandlersService(api apiService) {
 	r.HandleMethodNotAllowed = true
 	r.NoRoute(hs.NoRoute)
 	r.NoMethod(hs.NoMethod)
+	gin.CustomRecovery(hs.Recovery)
 }
