@@ -124,7 +124,7 @@ func TestHandlerRegister(t *testing.T) {
 				dump, _ := httputil.DumpRequest(req, true)
 				body, _ := io.ReadAll(res.Body)
 
-				t.Logf("\nЗапрос:\n%sОтвет:\n%s", dump, body)
+				t.Logf("\nЗапрос:\n%s\nОтвет:\n%s", dump, body)
 			}
 		})
 	}
@@ -250,7 +250,7 @@ func TestHandlerLogin(t *testing.T) {
 				dump, _ := httputil.DumpRequest(req, true)
 				body, _ := io.ReadAll(res.Body)
 
-				t.Logf("\nЗапрос:\n%sОтвет:\n%s", dump, body)
+				t.Logf("\nЗапрос:\n%s\nОтвет:\n%s", dump, body)
 			}
 		})
 	}
