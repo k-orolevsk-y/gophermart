@@ -18,6 +18,7 @@ require (
 	github.com/pressly/goose/v3 v3.15.1
 	github.com/stretchr/testify v1.8.3
 	go.uber.org/zap v1.26.0
+	google.golang.org/protobuf v1.30.0
 )
 
 require (
@@ -53,6 +54,5 @@ require (
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
-	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
