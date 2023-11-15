@@ -1,16 +1,20 @@
 package mocks
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/stretchr/testify/require"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"go.uber.org/zap/zaptest"
 
+	"github.com/k-orolevsk-y/gophermart/internal/gophermart/config"
 	orderpool "github.com/k-orolevsk-y/gophermart/internal/gophermart/order_pool"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/repository"
 	"github.com/k-orolevsk-y/gophermart/pkg/router"
@@ -31,6 +35,13 @@ type TestAPI struct {
 
 func NewTestAPI(t *testing.T) *TestAPI {
 	gin.SetMode(gin.TestMode)
+
+	if config.Config.HmacTokenSecret == "" {
+		generateHmacTokenSecret(t)
+	}
+	if config.Config.WorkersLimit == 0 {
+		config.Config.WorkersLimit = 1
+	}
 
 	api := &TestAPI{
 		t:      t,
@@ -93,4 +104,13 @@ func (api *TestAPI) configureRepository() {
 
 		return pgError
 	}).AnyTimes()
+}
+
+func generateHmacTokenSecret(t *testing.T) {
+	secret := make([]byte, 16)
+
+	_, err := rand.Read(secret)
+	require.NoError(t, err, "Не удалось сгенерировать secret-ключ для JWT")
+
+	config.Config.HmacTokenSecret = hex.EncodeToString(secret)
 }
