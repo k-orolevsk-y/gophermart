@@ -40,6 +40,7 @@ func ConfigureHandlersService(api apiService) {
 	}
 	r := api.GetRouter()
 
+	r.Use(gin.CustomRecovery(hs.Recovery))
 	r.Group("/api", func(routerApi router.RouterGroup) {
 		routerApi.Group("/user", func(routerUser router.RouterGroup) {
 			routerUser.POST("/register", hs.Register)
@@ -61,5 +62,4 @@ func ConfigureHandlersService(api apiService) {
 	r.HandleMethodNotAllowed = true
 	r.NoRoute(hs.NoRoute)
 	r.NoMethod(hs.NoMethod)
-	gin.CustomRecovery(hs.Recovery)
 }
