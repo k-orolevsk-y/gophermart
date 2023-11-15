@@ -48,6 +48,14 @@ func TestHandlerRegister(t *testing.T) {
 			http.StatusOK,
 		},
 		{
+			"Negative/InvalidHttpMethod",
+			http.MethodGet,
+			[]byte(`{"login":"userWantRegister","password":"strongPassword"}`),
+			nil,
+			false,
+			http.StatusMethodNotAllowed,
+		},
+		{
 			"Negative/BadRequest/Login",
 			http.MethodPost,
 			[]byte(`{"login":"","password":"superPassword"}`),
@@ -64,7 +72,7 @@ func TestHandlerRegister(t *testing.T) {
 			http.StatusBadRequest,
 		},
 		{
-			"Negative/User already created",
+			"Negative/UserAlreadyCreated",
 			http.MethodPost,
 			[]byte(`{"login":"userAlreadyCreated","password":"strongPassword"}`),
 			func(api *mocks.TestAPI) {
@@ -76,7 +84,7 @@ func TestHandlerRegister(t *testing.T) {
 			http.StatusConflict,
 		},
 		{
-			"Negative/Repository error",
+			"Negative/RepositoryError",
 			http.MethodPost,
 			[]byte(`{"login":"loser","password":"strongPassword"}`),
 			func(api *mocks.TestAPI) {
@@ -150,6 +158,14 @@ func TestHandlerLogin(t *testing.T) {
 			http.StatusOK,
 		},
 		{
+			"Negative/InvalidHttpMethod",
+			http.MethodGet,
+			[]byte(`{"login":"user-123","password":"strongPassword"}`),
+			nil,
+			false,
+			http.StatusMethodNotAllowed,
+		},
+		{
 			"Negative/BadRequest/Login",
 			http.MethodPost,
 			[]byte(`{"login":"","password":"superPassword"}`),
@@ -194,7 +210,7 @@ func TestHandlerLogin(t *testing.T) {
 			http.StatusUnauthorized,
 		},
 		{
-			"Negative/Repository error",
+			"Negative/RepositoryError",
 			http.MethodPost,
 			[]byte(`{"login":"errorUser","password":"strongPassword"}`),
 			func(api *mocks.TestAPI) {
