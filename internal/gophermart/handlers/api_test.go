@@ -44,3 +44,4 @@ func GetUserIDWithToken() (string, uuid.UUID, error) {
 	tokenString, err := j.Encode(&models.User{ID: id})
 	return tokenString, id, err
 }
+
