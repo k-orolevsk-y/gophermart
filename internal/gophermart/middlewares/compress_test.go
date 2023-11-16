@@ -11,7 +11,7 @@ import (
 )
 
 func TestMiddlewareCompress(t *testing.T) {
-	api := NewTestAPI(t)
+	api := NewTestAPI(t, nil)
 
 	w := httptest.NewRecorder()
 
