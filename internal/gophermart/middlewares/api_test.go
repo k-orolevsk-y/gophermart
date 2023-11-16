@@ -5,11 +5,11 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/k-orolevsk-y/gophermart/internal/gophermart/mocks"
+	"github.com/k-orolevsk-y/gophermart/internal/gophermart/mocks/api"
 )
 
-func NewTestAPI(t *testing.T, logger *zap.Logger) *mocks.TestAPI {
-	api := mocks.NewTestAPI(t)
+func NewTestAPI(t *testing.T, logger *zap.Logger) *api.TestAPI {
+	api := api.NewTestAPI(t)
 	if logger != nil {
 		api.SetNewLogger(logger)
 	}

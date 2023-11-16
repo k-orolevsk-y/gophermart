@@ -2,13 +2,14 @@
 // Source: internal/gophermart/repository/pg.go
 
 // Package mocks is a generated GoMock package.
-package mocks
+package repository
 
 import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
 	pgconn "github.com/jackc/pgx/v5/pgconn"
+
 	repository "github.com/k-orolevsk-y/gophermart/internal/gophermart/repository"
 )
 

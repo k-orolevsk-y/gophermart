@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/k-orolevsk-y/gophermart/internal/gophermart/mocks"
+	"github.com/k-orolevsk-y/gophermart/internal/gophermart/mocks/api"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/models"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/repository"
 )
@@ -26,14 +26,14 @@ func TestHandlerGetOrders(t *testing.T) {
 	tests := []struct {
 		Name             string
 		Method           string
-		BeforeFunc       func(api *mocks.TestAPI) (tokenString string, err error)
+		BeforeFunc       func(testAPI *api.TestAPI) (tokenString string, err error)
 		WantedBody       []byte
 		WantedStatusCode int
 	}{
 		{
 			"Positive",
 			http.MethodGet,
-			func(api *mocks.TestAPI) (string, error) {
+			func(testAPI *api.TestAPI) (string, error) {
 				tokenString, userID, err := GetUserIDWithToken()
 				if err != nil {
 					return "", err
@@ -48,7 +48,7 @@ func TestHandlerGetOrders(t *testing.T) {
 						UploadedAt: time.Date(2023, time.November, 15, 15, 23, 30, 0, time.FixedZone("UTC", 0)),
 					},
 				}
-				api.GetPgOrderEXPECT().GetAllByUserID(gomock.Any(), userID).Return(orders, nil)
+				testAPI.GetPgOrderEXPECT().GetAllByUserID(gomock.Any(), userID).Return(orders, nil)
 
 				return tokenString, nil
 			},
@@ -58,13 +58,13 @@ func TestHandlerGetOrders(t *testing.T) {
 		{
 			"Positive/WithoutItems",
 			http.MethodGet,
-			func(api *mocks.TestAPI) (string, error) {
+			func(testAPI *api.TestAPI) (string, error) {
 				tokenString, userID, err := GetUserIDWithToken()
 				if err != nil {
 					return "", err
 				}
 
-				api.GetPgOrderEXPECT().GetAllByUserID(gomock.Any(), userID).Return([]models.Order{}, nil)
+				testAPI.GetPgOrderEXPECT().GetAllByUserID(gomock.Any(), userID).Return([]models.Order{}, nil)
 
 				return tokenString, nil
 			},
@@ -81,13 +81,13 @@ func TestHandlerGetOrders(t *testing.T) {
 		{
 			"Negative/RepositoryError",
 			http.MethodGet,
-			func(api *mocks.TestAPI) (string, error) {
+			func(testAPI *api.TestAPI) (string, error) {
 				tokenString, userID, err := GetUserIDWithToken()
 				if err != nil {
 					return "", err
 				}
 
-				api.GetPgOrderEXPECT().GetAllByUserID(gomock.Any(), userID).Return(nil, errors.New("not connected"))
+				testAPI.GetPgOrderEXPECT().GetAllByUserID(gomock.Any(), userID).Return(nil, errors.New("not connected"))
 
 				return tokenString, nil
 			},
@@ -98,11 +98,11 @@ func TestHandlerGetOrders(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			api := NewTestAPI(t)
+			testAPI := NewTestAPI(t)
 
 			var tokenString string
 			if tt.BeforeFunc != nil {
-				tknString, err := tt.BeforeFunc(api)
+				tknString, err := tt.BeforeFunc(testAPI)
 				require.NoError(t, err, "Ошибка при выполнении функции до теста")
 
 				tokenString = tknString
@@ -113,7 +113,7 @@ func TestHandlerGetOrders(t *testing.T) {
 			req := httptest.NewRequest(tt.Method, "/api/user/orders", nil)
 			req.Header.Set("Authorization", tokenString)
 
-			api.GetRouter().ServeHTTP(w, req)
+			testAPI.GetRouter().ServeHTTP(w, req)
 
 			res := w.Result()
 			defer res.Body.Close()
@@ -139,20 +139,20 @@ func TestHandlerNewOrder(t *testing.T) {
 		Name             string
 		Method           string
 		OrderID          []byte
-		BeforeFunc       func(api *mocks.TestAPI) (tokenString string, err error)
+		BeforeFunc       func(testAPI *api.TestAPI) (tokenString string, err error)
 		WantedStatusCode int
 	}{
 		{
 			"Positive",
 			http.MethodPost,
 			[]byte(`5081794355`),
-			func(api *mocks.TestAPI) (string, error) {
+			func(testAPI *api.TestAPI) (string, error) {
 				tokenString, _, err := GetUserIDWithToken()
 				if err != nil {
 					return "", err
 				}
 
-				api.GetPgOrderEXPECT().
+				testAPI.GetPgOrderEXPECT().
 					Create(gomock.Any(), gomock.Any()).
 					Return(nil)
 
@@ -164,13 +164,13 @@ func TestHandlerNewOrder(t *testing.T) {
 			"Positive/AlreadyCreated",
 			http.MethodPost,
 			[]byte(`5081794355`),
-			func(api *mocks.TestAPI) (string, error) {
+			func(testAPI *api.TestAPI) (string, error) {
 				tokenString, _, err := GetUserIDWithToken()
 				if err != nil {
 					return "", err
 				}
 
-				api.GetPgOrderEXPECT().
+				testAPI.GetPgOrderEXPECT().
 					Create(gomock.Any(), gomock.Any()).
 					Return(&pgconn.PgError{Message: repository.ErrorOrderByThisUser})
 
@@ -182,7 +182,7 @@ func TestHandlerNewOrder(t *testing.T) {
 			"Negative/WithoutBody",
 			http.MethodPost,
 			[]byte(``),
-			func(api *mocks.TestAPI) (tokenString string, err error) {
+			func(testAPI *api.TestAPI) (tokenString string, err error) {
 				tokenString, _, err = GetUserIDWithToken()
 				return
 			},
@@ -192,7 +192,7 @@ func TestHandlerNewOrder(t *testing.T) {
 			"Negative/InvalidOrderNumber",
 			http.MethodPost,
 			[]byte(`invalid_body`),
-			func(api *mocks.TestAPI) (tokenString string, err error) {
+			func(testAPI *api.TestAPI) (tokenString string, err error) {
 				tokenString, _, err = GetUserIDWithToken()
 				return
 			},
@@ -202,7 +202,7 @@ func TestHandlerNewOrder(t *testing.T) {
 			"Negative/InvalidNumberOfAlgorithmLuna",
 			http.MethodPost,
 			[]byte(`1234`),
-			func(api *mocks.TestAPI) (tokenString string, err error) {
+			func(testAPI *api.TestAPI) (tokenString string, err error) {
 				tokenString, _, err = GetUserIDWithToken()
 				return
 			},
@@ -212,13 +212,13 @@ func TestHandlerNewOrder(t *testing.T) {
 			"Negative/AlreadyCreatedByOtherUser",
 			http.MethodPost,
 			[]byte(`5081794355`),
-			func(api *mocks.TestAPI) (string, error) {
+			func(testAPI *api.TestAPI) (string, error) {
 				tokenString, _, err := GetUserIDWithToken()
 				if err != nil {
 					return "", err
 				}
 
-				api.GetPgOrderEXPECT().
+				testAPI.GetPgOrderEXPECT().
 					Create(gomock.Any(), gomock.Any()).
 					Return(&pgconn.PgError{Message: repository.ErrorOrderByOtherUser})
 
@@ -230,13 +230,13 @@ func TestHandlerNewOrder(t *testing.T) {
 			"Negative/RepositoryError",
 			http.MethodPost,
 			[]byte(`5081794355`),
-			func(api *mocks.TestAPI) (string, error) {
+			func(testAPI *api.TestAPI) (string, error) {
 				tokenString, _, err := GetUserIDWithToken()
 				if err != nil {
 					return "", err
 				}
 
-				api.GetPgOrderEXPECT().
+				testAPI.GetPgOrderEXPECT().
 					Create(gomock.Any(), gomock.Any()).
 					Return(errors.New("not connected"))
 
@@ -248,14 +248,14 @@ func TestHandlerNewOrder(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			api := NewTestAPI(t)
+			testAPI := NewTestAPI(t)
 
-			api.GetOrderPool().Run()
-			defer api.GetOrderPool().Close()
+			testAPI.GetOrderPool().Run()
+			defer testAPI.GetOrderPool().Close()
 
 			var tokenString string
 			if tt.BeforeFunc != nil {
-				tknString, err := tt.BeforeFunc(api)
+				tknString, err := tt.BeforeFunc(testAPI)
 				require.NoError(t, err, "Ошибка при выполнении функции до теста")
 
 				tokenString = tknString
@@ -267,7 +267,7 @@ func TestHandlerNewOrder(t *testing.T) {
 			req.Header.Set("Authorization", tokenString)
 			req.Header.Set("Content-Type", "text/plain")
 
-			api.GetRouter().ServeHTTP(w, req)
+			testAPI.GetRouter().ServeHTTP(w, req)
 
 			res := w.Result()
 			defer res.Body.Close()
