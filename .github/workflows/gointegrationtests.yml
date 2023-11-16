@@ -32,8 +32,9 @@ jobs:
           go-version: 1.21
 
       - name: Integration Test
-        run: go test \
-          -v \
-          -tags=integration \
-          github.com/k-orolevsk-y/gophermart/internal/gophermart/repository \
-          -d="postgresql://postgres:postgres@postgres/test_gophermart?sslmode=disable"
+        run: |
+          go test \
+            -v \
+            -tags=integration \
+            github.com/k-orolevsk-y/gophermart/internal/gophermart/repository \
+            -d="postgresql://postgres:postgres@postgres/test_gophermart?sslmode=disable"
