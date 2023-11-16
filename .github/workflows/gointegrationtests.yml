@@ -17,6 +17,8 @@ jobs:
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: test_gophermart
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 5s
@@ -37,4 +39,4 @@ jobs:
             -v \
             -tags=integration \
             github.com/k-orolevsk-y/gophermart/internal/gophermart/repository \
-            -d="postgresql://postgres:postgres@postgres/test_gophermart?sslmode=disable"
+            -d="host=postgres user=postgres password=postgres dbname=test_gophermart port=5432 sslmode=disable"
