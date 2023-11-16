@@ -16,7 +16,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/k-orolevsk-y/gophermart/internal/gophermart/mocks"
+	"github.com/k-orolevsk-y/gophermart/internal/gophermart/mocks/api"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/models"
 )
 
@@ -25,7 +25,7 @@ func TestHandlerRegister(t *testing.T) {
 		Name             string
 		Method           string
 		Body             []byte
-		RepositoryFunc   func(api *mocks.TestAPI)
+		RepositoryFunc   func(testAPI *api.TestAPI)
 		WantedAuthHeader bool
 		WantedStatusCode int
 	}{
@@ -33,8 +33,8 @@ func TestHandlerRegister(t *testing.T) {
 			"Positive",
 			http.MethodPost,
 			[]byte(`{"login":"userWantRegister","password":"strongPassword"}`),
-			func(api *mocks.TestAPI) {
-				api.GetPgUserEXPECT().
+			func(testAPI *api.TestAPI) {
+				testAPI.GetPgUserEXPECT().
 					Create(gomock.Any(), gomock.Any()).
 					DoAndReturn(func(_ interface{}, user *models.User) error {
 						user.ID = uuid.New()
@@ -75,8 +75,8 @@ func TestHandlerRegister(t *testing.T) {
 			"Negative/UserAlreadyCreated",
 			http.MethodPost,
 			[]byte(`{"login":"userAlreadyCreated","password":"strongPassword"}`),
-			func(api *mocks.TestAPI) {
-				api.GetPgUserEXPECT().
+			func(testAPI *api.TestAPI) {
+				testAPI.GetPgUserEXPECT().
 					Create(gomock.Any(), gomock.Any()).
 					Return(&pgconn.PgError{Code: "23000"})
 			},
@@ -87,8 +87,8 @@ func TestHandlerRegister(t *testing.T) {
 			"Negative/RepositoryError",
 			http.MethodPost,
 			[]byte(`{"login":"loser","password":"strongPassword"}`),
-			func(api *mocks.TestAPI) {
-				api.GetPgUserEXPECT().
+			func(testAPI *api.TestAPI) {
+				testAPI.GetPgUserEXPECT().
 					Create(gomock.Any(), gomock.Any()).
 					Return(errors.New("not connected"))
 			},
@@ -99,10 +99,10 @@ func TestHandlerRegister(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			api := NewTestAPI(t)
+			testAPI := NewTestAPI(t)
 
 			if tt.RepositoryFunc != nil {
-				tt.RepositoryFunc(api)
+				tt.RepositoryFunc(testAPI)
 			}
 
 			w := httptest.NewRecorder()
@@ -110,7 +110,7 @@ func TestHandlerRegister(t *testing.T) {
 			req := httptest.NewRequest(tt.Method, "/api/user/register", bytes.NewReader(tt.Body))
 			req.Header.Set("Content-Type", "application/json")
 
-			api.GetRouter().ServeHTTP(w, req)
+			testAPI.GetRouter().ServeHTTP(w, req)
 
 			res := w.Result()
 			defer res.Body.Close()
@@ -135,7 +135,7 @@ func TestHandlerLogin(t *testing.T) {
 		Name             string
 		Method           string
 		Body             []byte
-		RepositoryFunc   func(api *mocks.TestAPI)
+		RepositoryFunc   func(api *api.TestAPI)
 		WantedAuthHeader bool
 		WantedStatusCode int
 	}{
@@ -143,7 +143,7 @@ func TestHandlerLogin(t *testing.T) {
 			"Positive",
 			http.MethodPost,
 			[]byte(`{"login":"user-123","password":"strongPassword"}`),
-			func(api *mocks.TestAPI) {
+			func(testAPI *api.TestAPI) {
 				user := models.User{
 					ID:        uuid.New(),
 					Login:     "user-123",
@@ -152,7 +152,7 @@ func TestHandlerLogin(t *testing.T) {
 				}
 				user.EncryptPassword()
 
-				api.GetPgUserEXPECT().GetByLogin(gomock.Any(), "user-123").Return(&user, nil)
+				testAPI.GetPgUserEXPECT().GetByLogin(gomock.Any(), "user-123").Return(&user, nil)
 			},
 			true,
 			http.StatusOK,
@@ -185,8 +185,8 @@ func TestHandlerLogin(t *testing.T) {
 			"Negative/Invalid/Login",
 			http.MethodPost,
 			[]byte(`{"login":"userNotExist","password":"strongPassword"}`),
-			func(api *mocks.TestAPI) {
-				api.GetPgUserEXPECT().GetByLogin(gomock.Any(), "userNotExist").Return(nil, sql.ErrNoRows)
+			func(testAPI *api.TestAPI) {
+				testAPI.GetPgUserEXPECT().GetByLogin(gomock.Any(), "userNotExist").Return(nil, sql.ErrNoRows)
 			},
 			false,
 			http.StatusUnauthorized,
@@ -195,7 +195,7 @@ func TestHandlerLogin(t *testing.T) {
 			"Negative/Invalid/Password",
 			http.MethodPost,
 			[]byte(`{"login":"geniusUser","password":"strongPassword"}`),
-			func(api *mocks.TestAPI) {
+			func(testAPI *api.TestAPI) {
 				user := models.User{
 					ID:        uuid.New(),
 					Login:     "geniusUser",
@@ -204,7 +204,7 @@ func TestHandlerLogin(t *testing.T) {
 				}
 				user.EncryptPassword()
 
-				api.GetPgUserEXPECT().GetByLogin(gomock.Any(), "geniusUser").Return(&user, nil)
+				testAPI.GetPgUserEXPECT().GetByLogin(gomock.Any(), "geniusUser").Return(&user, nil)
 			},
 			false,
 			http.StatusUnauthorized,
@@ -213,8 +213,8 @@ func TestHandlerLogin(t *testing.T) {
 			"Negative/RepositoryError",
 			http.MethodPost,
 			[]byte(`{"login":"errorUser","password":"strongPassword"}`),
-			func(api *mocks.TestAPI) {
-				api.GetPgUserEXPECT().
+			func(testAPI *api.TestAPI) {
+				testAPI.GetPgUserEXPECT().
 					GetByLogin(gomock.Any(), "errorUser").
 					Return(nil, errors.New("not connected"))
 			},
@@ -225,10 +225,10 @@ func TestHandlerLogin(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			api := NewTestAPI(t)
+			testAPI := NewTestAPI(t)
 
 			if tt.RepositoryFunc != nil {
-				tt.RepositoryFunc(api)
+				tt.RepositoryFunc(testAPI)
 			}
 
 			w := httptest.NewRecorder()
@@ -236,7 +236,7 @@ func TestHandlerLogin(t *testing.T) {
 			req := httptest.NewRequest(tt.Method, "/api/user/login", bytes.NewReader(tt.Body))
 			req.Header.Set("Content-Type", "application/json")
 
-			api.GetRouter().ServeHTTP(w, req)
+			testAPI.GetRouter().ServeHTTP(w, req)
 
 			res := w.Result()
 			defer res.Body.Close()

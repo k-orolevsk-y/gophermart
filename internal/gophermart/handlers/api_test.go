@@ -7,18 +7,18 @@ import (
 
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/config"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/middlewares"
-	"github.com/k-orolevsk-y/gophermart/internal/gophermart/mocks"
+	"github.com/k-orolevsk-y/gophermart/internal/gophermart/mocks/api"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/models"
 	"github.com/k-orolevsk-y/gophermart/pkg/jwt"
 )
 
-func NewTestAPI(t *testing.T) *mocks.TestAPI {
-	api := mocks.NewTestAPI(t)
+func NewTestAPI(t *testing.T) *api.TestAPI {
+	testAPI := api.NewTestAPI(t)
 
-	ConfigureHandlersService(api)
-	middlewares.ConfigureMiddlewaresService(api)
+	ConfigureHandlersService(testAPI)
+	middlewares.ConfigureMiddlewaresService(testAPI)
 
-	return api
+	return testAPI
 }
 
 func GetUserIDWithToken() (string, uuid.UUID, error) {

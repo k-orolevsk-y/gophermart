@@ -11,14 +11,14 @@ import (
 )
 
 func TestMiddlewareCompress(t *testing.T) {
-	api := NewTestAPI(t, nil)
+	testAPI := NewTestAPI(t, nil)
 
 	w := httptest.NewRecorder()
 
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 	req.Header.Set("Accept-Encoding", "gzip")
 
-	api.GetRouter().ServeHTTP(w, req)
+	testAPI.GetRouter().ServeHTTP(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()

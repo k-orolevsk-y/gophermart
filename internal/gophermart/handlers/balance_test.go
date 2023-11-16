@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/k-orolevsk-y/gophermart/internal/gophermart/mocks"
+	"github.com/k-orolevsk-y/gophermart/internal/gophermart/mocks/api"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/repository"
 )
 
@@ -21,21 +21,21 @@ func TestHandlerGetBalance(t *testing.T) {
 	tests := []struct {
 		Name             string
 		Method           string
-		BeforeFunc       func(api *mocks.TestAPI) (tokenString string, err error)
+		BeforeFunc       func(testAPI *api.TestAPI) (tokenString string, err error)
 		WantedBody       []byte
 		WantedStatusCode int
 	}{
 		{
 			"Positive",
 			http.MethodGet,
-			func(api *mocks.TestAPI) (string, error) {
+			func(testAPI *api.TestAPI) (string, error) {
 				tokenString, userID, err := GetUserIDWithToken()
 				if err != nil {
 					return "", err
 				}
 
-				api.GetPgOrderEXPECT().GetAccrualSumByUserID(gomock.Any(), userID).Return(float64(319), nil)
-				api.GetPgUserWithdrawEXPECT().GetWithdrawnSumByUserID(gomock.Any(), userID).Return(float64(90), nil)
+				testAPI.GetPgOrderEXPECT().GetAccrualSumByUserID(gomock.Any(), userID).Return(float64(319), nil)
+				testAPI.GetPgUserWithdrawEXPECT().GetWithdrawnSumByUserID(gomock.Any(), userID).Return(float64(90), nil)
 
 				return tokenString, nil
 			},
@@ -45,14 +45,14 @@ func TestHandlerGetBalance(t *testing.T) {
 		{
 			"Positive/Float64",
 			http.MethodGet,
-			func(api *mocks.TestAPI) (string, error) {
+			func(testAPI *api.TestAPI) (string, error) {
 				tokenString, userID, err := GetUserIDWithToken()
 				if err != nil {
 					return "", err
 				}
 
-				api.GetPgOrderEXPECT().GetAccrualSumByUserID(gomock.Any(), userID).Return(132.99, nil)
-				api.GetPgUserWithdrawEXPECT().GetWithdrawnSumByUserID(gomock.Any(), userID).Return(84.845, nil)
+				testAPI.GetPgOrderEXPECT().GetAccrualSumByUserID(gomock.Any(), userID).Return(132.99, nil)
+				testAPI.GetPgUserWithdrawEXPECT().GetWithdrawnSumByUserID(gomock.Any(), userID).Return(84.845, nil)
 
 				return tokenString, nil
 			},
@@ -69,13 +69,13 @@ func TestHandlerGetBalance(t *testing.T) {
 		{
 			"Negative/RepositoryError/SumWithdraw",
 			http.MethodGet,
-			func(api *mocks.TestAPI) (string, error) {
+			func(testAPI *api.TestAPI) (string, error) {
 				tokenString, userID, err := GetUserIDWithToken()
 				if err != nil {
 					return "", err
 				}
 
-				api.GetPgUserWithdrawEXPECT().GetWithdrawnSumByUserID(gomock.Any(), userID).Return(float64(0), errors.New("not connected"))
+				testAPI.GetPgUserWithdrawEXPECT().GetWithdrawnSumByUserID(gomock.Any(), userID).Return(float64(0), errors.New("not connected"))
 
 				return tokenString, nil
 			},
@@ -85,14 +85,14 @@ func TestHandlerGetBalance(t *testing.T) {
 		{
 			"Negative/RepositoryError/SumCurrent",
 			http.MethodGet,
-			func(api *mocks.TestAPI) (string, error) {
+			func(testAPI *api.TestAPI) (string, error) {
 				tokenString, userID, err := GetUserIDWithToken()
 				if err != nil {
 					return "", err
 				}
 
-				api.GetPgUserWithdrawEXPECT().GetWithdrawnSumByUserID(gomock.Any(), userID).Return(float64(0), nil)
-				api.GetPgOrderEXPECT().GetAccrualSumByUserID(gomock.Any(), userID).Return(float64(0), errors.New("not connected"))
+				testAPI.GetPgUserWithdrawEXPECT().GetWithdrawnSumByUserID(gomock.Any(), userID).Return(float64(0), nil)
+				testAPI.GetPgOrderEXPECT().GetAccrualSumByUserID(gomock.Any(), userID).Return(float64(0), errors.New("not connected"))
 
 				return tokenString, nil
 			},
@@ -103,11 +103,11 @@ func TestHandlerGetBalance(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			api := NewTestAPI(t)
+			testAPI := NewTestAPI(t)
 
 			var tokenString string
 			if tt.BeforeFunc != nil {
-				tknString, err := tt.BeforeFunc(api)
+				tknString, err := tt.BeforeFunc(testAPI)
 				require.NoError(t, err, "Ошибка при выполнении функции до теста")
 
 				tokenString = tknString
@@ -118,7 +118,7 @@ func TestHandlerGetBalance(t *testing.T) {
 			req := httptest.NewRequest(tt.Method, "/api/user/balance/", nil)
 			req.Header.Set("Authorization", tokenString)
 
-			api.GetRouter().ServeHTTP(w, req)
+			testAPI.GetRouter().ServeHTTP(w, req)
 
 			res := w.Result()
 			defer res.Body.Close()
@@ -144,20 +144,20 @@ func TestHandlerNewBalanceWithdrawn(t *testing.T) {
 		Name             string
 		Method           string
 		Body             []byte
-		BeforeFunc       func(api *mocks.TestAPI) (tokenString string, err error)
+		BeforeFunc       func(testAPI *api.TestAPI) (tokenString string, err error)
 		WantedStatusCode int
 	}{
 		{
 			"Positive",
 			http.MethodPost,
 			[]byte(`{"order":"5081794355", "sum": 100}`),
-			func(api *mocks.TestAPI) (string, error) {
+			func(testAPI *api.TestAPI) (string, error) {
 				tokenString, _, err := GetUserIDWithToken()
 				if err != nil {
 					return "", err
 				}
 
-				api.GetPgUserWithdrawEXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
+				testAPI.GetPgUserWithdrawEXPECT().Create(gomock.Any(), gomock.Any()).Return(nil)
 
 				return tokenString, nil
 			},
@@ -174,7 +174,7 @@ func TestHandlerNewBalanceWithdrawn(t *testing.T) {
 			"Negative/InvalidOrderNumber",
 			http.MethodPost,
 			[]byte(`{"order":"NotANumber", "sum": 300}`),
-			func(api *mocks.TestAPI) (tokenString string, err error) {
+			func(testAPI *api.TestAPI) (tokenString string, err error) {
 				tokenString, _, err = GetUserIDWithToken()
 				return
 			},
@@ -184,7 +184,7 @@ func TestHandlerNewBalanceWithdrawn(t *testing.T) {
 			"Negative/InvalidNumberOfAlgorithmLuna",
 			http.MethodPost,
 			[]byte(`{"order":"1234", "sum": 300}`),
-			func(api *mocks.TestAPI) (tokenString string, err error) {
+			func(testAPI *api.TestAPI) (tokenString string, err error) {
 				tokenString, _, err = GetUserIDWithToken()
 				return
 			},
@@ -194,7 +194,7 @@ func TestHandlerNewBalanceWithdrawn(t *testing.T) {
 			"Negative/InvalidSum",
 			http.MethodPost,
 			[]byte(`{"order":"1234", "sum": true}`),
-			func(api *mocks.TestAPI) (tokenString string, err error) {
+			func(testAPI *api.TestAPI) (tokenString string, err error) {
 				tokenString, _, err = GetUserIDWithToken()
 				return
 			},
@@ -204,7 +204,7 @@ func TestHandlerNewBalanceWithdrawn(t *testing.T) {
 			"Negative/SmallSum",
 			http.MethodPost,
 			[]byte(`{"order":"5081794355", "sum": 0.3}`),
-			func(api *mocks.TestAPI) (tokenString string, err error) {
+			func(testAPI *api.TestAPI) (tokenString string, err error) {
 				tokenString, _, err = GetUserIDWithToken()
 				return
 			},
@@ -214,13 +214,13 @@ func TestHandlerNewBalanceWithdrawn(t *testing.T) {
 			"Negative/UserHasNoFunds",
 			http.MethodPost,
 			[]byte(`{"order":"5081794355", "sum": 2}`),
-			func(api *mocks.TestAPI) (string, error) {
+			func(testAPI *api.TestAPI) (string, error) {
 				tokenString, _, err := GetUserIDWithToken()
 				if err != nil {
 					return "", err
 				}
 
-				api.GetPgUserWithdrawEXPECT().Create(gomock.Any(), gomock.Any()).Return(repository.ErrorInsufficientFunds)
+				testAPI.GetPgUserWithdrawEXPECT().Create(gomock.Any(), gomock.Any()).Return(repository.ErrorInsufficientFunds)
 
 				return tokenString, nil
 			},
@@ -230,13 +230,13 @@ func TestHandlerNewBalanceWithdrawn(t *testing.T) {
 			"Negative/RepositoryError",
 			http.MethodPost,
 			[]byte(`{"order":"5081794355", "sum": 20}`),
-			func(api *mocks.TestAPI) (string, error) {
+			func(testAPI *api.TestAPI) (string, error) {
 				tokenString, _, err := GetUserIDWithToken()
 				if err != nil {
 					return "", err
 				}
 
-				api.GetPgUserWithdrawEXPECT().Create(gomock.Any(), gomock.Any()).Return(errors.New("not connected"))
+				testAPI.GetPgUserWithdrawEXPECT().Create(gomock.Any(), gomock.Any()).Return(errors.New("not connected"))
 
 				return tokenString, nil
 			},
@@ -246,11 +246,11 @@ func TestHandlerNewBalanceWithdrawn(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			api := NewTestAPI(t)
+			testAPI := NewTestAPI(t)
 
 			var tokenString string
 			if tt.BeforeFunc != nil {
-				tknString, err := tt.BeforeFunc(api)
+				tknString, err := tt.BeforeFunc(testAPI)
 				require.NoError(t, err, "Ошибка при выполнении функции до теста")
 
 				tokenString = tknString
@@ -262,7 +262,7 @@ func TestHandlerNewBalanceWithdrawn(t *testing.T) {
 			req.Header.Set("Authorization", tokenString)
 			req.Header.Set("Content-Type", "application/json")
 
-			api.GetRouter().ServeHTTP(w, req)
+			testAPI.GetRouter().ServeHTTP(w, req)
 
 			res := w.Result()
 			defer res.Body.Close()

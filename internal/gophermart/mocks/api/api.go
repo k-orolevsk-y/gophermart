@@ -1,4 +1,4 @@
-package mocks
+package api
 
 import (
 	"crypto/rand"
@@ -15,6 +15,7 @@ import (
 	"go.uber.org/zap/zaptest"
 
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/config"
+	repository2 "github.com/k-orolevsk-y/gophermart/internal/gophermart/mocks/repository"
 	orderpool "github.com/k-orolevsk-y/gophermart/internal/gophermart/order_pool"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/repository"
 	"github.com/k-orolevsk-y/gophermart/pkg/router"
@@ -28,9 +29,9 @@ type TestAPI struct {
 	pg        repository.Repository
 	orderPool *orderpool.OrderPool
 
-	mockRepositoryCategoryUser         *MockRepositoryCategoryUser
-	mockRepositoryCategoryOrders       *MockRepositoryCategoryOrders
-	mockRepositoryCategoryUserWithdraw *MockRepositoryCategoryUserWithdraw
+	mockRepositoryCategoryUser         *repository2.MockRepositoryCategoryUser
+	mockRepositoryCategoryOrders       *repository2.MockRepositoryCategoryOrders
+	mockRepositoryCategoryUserWithdraw *repository2.MockRepositoryCategoryUserWithdraw
 }
 
 func NewTestAPI(t *testing.T) *TestAPI {
@@ -47,7 +48,7 @@ func NewTestAPI(t *testing.T) *TestAPI {
 		t:      t,
 		router: router.New(),
 		logger: zaptest.NewLogger(t, zaptest.Level(zapcore.PanicLevel)),
-		pg:     NewMockRepository(gomock.NewController(t)),
+		pg:     repository2.NewMockRepository(gomock.NewController(t)),
 	}
 
 	api.configureRepository()
@@ -72,21 +73,21 @@ func (api *TestAPI) GetOrderPool() *orderpool.OrderPool {
 	return api.orderPool
 }
 
-func (api *TestAPI) GetPgEXPECT() *MockRepositoryMockRecorder {
-	return api.pg.(*MockRepository).EXPECT()
+func (api *TestAPI) GetPgEXPECT() *repository2.MockRepositoryMockRecorder {
+	return api.pg.(*repository2.MockRepository).EXPECT()
 }
 
-func (api *TestAPI) GetPgUserEXPECT() *MockRepositoryCategoryUserMockRecorder {
+func (api *TestAPI) GetPgUserEXPECT() *repository2.MockRepositoryCategoryUserMockRecorder {
 	api.GetPgEXPECT().User().Return(api.mockRepositoryCategoryUser)
 	return api.mockRepositoryCategoryUser.EXPECT()
 }
 
-func (api *TestAPI) GetPgOrderEXPECT() *MockRepositoryCategoryOrdersMockRecorder {
+func (api *TestAPI) GetPgOrderEXPECT() *repository2.MockRepositoryCategoryOrdersMockRecorder {
 	api.GetPgEXPECT().Order().Return(api.mockRepositoryCategoryOrders)
 	return api.mockRepositoryCategoryOrders.EXPECT()
 }
 
-func (api *TestAPI) GetPgUserWithdrawEXPECT() *MockRepositoryCategoryUserWithdrawMockRecorder {
+func (api *TestAPI) GetPgUserWithdrawEXPECT() *repository2.MockRepositoryCategoryUserWithdrawMockRecorder {
 	api.GetPgEXPECT().UserWithdraw().Return(api.mockRepositoryCategoryUserWithdraw)
 	return api.mockRepositoryCategoryUserWithdraw.EXPECT()
 }
@@ -96,9 +97,9 @@ func (api *TestAPI) SetNewLogger(logger *zap.Logger) {
 }
 
 func (api *TestAPI) configureRepository() {
-	api.mockRepositoryCategoryUser = NewMockRepositoryCategoryUser(gomock.NewController(api.t))
-	api.mockRepositoryCategoryOrders = NewMockRepositoryCategoryOrders(gomock.NewController(api.t))
-	api.mockRepositoryCategoryUserWithdraw = NewMockRepositoryCategoryUserWithdraw(gomock.NewController(api.t))
+	api.mockRepositoryCategoryUser = repository2.NewMockRepositoryCategoryUser(gomock.NewController(api.t))
+	api.mockRepositoryCategoryOrders = repository2.NewMockRepositoryCategoryOrders(gomock.NewController(api.t))
+	api.mockRepositoryCategoryUserWithdraw = repository2.NewMockRepositoryCategoryUserWithdraw(gomock.NewController(api.t))
 
 	api.GetPgEXPECT().ParsePgError(gomock.Any()).DoAndReturn(func(err error) *pgconn.PgError {
 		var pgError *pgconn.PgError
