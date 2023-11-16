@@ -91,6 +91,10 @@ func (api *TestAPI) GetPgUserWithdrawEXPECT() *MockRepositoryCategoryUserWithdra
 	return api.mockRepositoryCategoryUserWithdraw.EXPECT()
 }
 
+func (api *TestAPI) SetNewLogger(logger *zap.Logger) {
+	api.logger = logger
+}
+
 func (api *TestAPI) configureRepository() {
 	api.mockRepositoryCategoryUser = NewMockRepositoryCategoryUser(gomock.NewController(api.t))
 	api.mockRepositoryCategoryOrders = NewMockRepositoryCategoryOrders(gomock.NewController(api.t))
