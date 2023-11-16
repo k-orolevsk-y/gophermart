@@ -2,7 +2,7 @@
 // Source: internal/gophermart/repository/user_withdraw.go
 
 // Package mocks is a generated GoMock package.
-package mocks
+package repository
 
 import (
 	context "context"
@@ -10,6 +10,7 @@ import (
 
 	gomock "github.com/golang/mock/gomock"
 	uuid "github.com/google/uuid"
+
 	models "github.com/k-orolevsk-y/gophermart/internal/gophermart/models"
 )
 

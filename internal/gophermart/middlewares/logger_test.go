@@ -21,12 +21,12 @@ func TestMiddlewareLogger(t *testing.T) {
 		zap.AddCaller(),
 	)
 
-	api := NewTestAPI(t, logger)
+	testAPI := NewTestAPI(t, logger)
 
 	w := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
 
-	api.GetRouter().ServeHTTP(w, req)
+	testAPI.GetRouter().ServeHTTP(w, req)
 
 	res := w.Result()
 	defer res.Body.Close()

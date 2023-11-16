@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/k-orolevsk-y/gophermart/internal/gophermart/mocks"
+	"github.com/k-orolevsk-y/gophermart/internal/gophermart/mocks/api"
 	"github.com/k-orolevsk-y/gophermart/internal/gophermart/models"
 )
 
@@ -22,14 +22,14 @@ func TestHandlerGetWithdrawals(t *testing.T) {
 	tests := []struct {
 		Name             string
 		Method           string
-		BeforeFunc       func(api *mocks.TestAPI) (tokenString string, err error)
+		BeforeFunc       func(testAPI *api.TestAPI) (tokenString string, err error)
 		WantedBody       []byte
 		WantedStatusCode int
 	}{
 		{
 			"Positive",
 			http.MethodGet,
-			func(api *mocks.TestAPI) (string, error) {
+			func(testAPI *api.TestAPI) (string, error) {
 				tokenString, userID, err := GetUserIDWithToken()
 				if err != nil {
 					return "", err
@@ -45,7 +45,7 @@ func TestHandlerGetWithdrawals(t *testing.T) {
 					},
 				}
 
-				api.GetPgUserWithdrawEXPECT().GetAllByUserID(gomock.Any(), userID).Return(userWithdrawals, nil)
+				testAPI.GetPgUserWithdrawEXPECT().GetAllByUserID(gomock.Any(), userID).Return(userWithdrawals, nil)
 
 				return tokenString, nil
 			},
@@ -55,13 +55,13 @@ func TestHandlerGetWithdrawals(t *testing.T) {
 		{
 			"Positive/WithoutItems",
 			http.MethodGet,
-			func(api *mocks.TestAPI) (string, error) {
+			func(testAPI *api.TestAPI) (string, error) {
 				tokenString, userID, err := GetUserIDWithToken()
 				if err != nil {
 					return "", err
 				}
 
-				api.GetPgUserWithdrawEXPECT().GetAllByUserID(gomock.Any(), userID).Return([]models.UserWithdraw{}, nil)
+				testAPI.GetPgUserWithdrawEXPECT().GetAllByUserID(gomock.Any(), userID).Return([]models.UserWithdraw{}, nil)
 
 				return tokenString, nil
 			},
@@ -78,13 +78,13 @@ func TestHandlerGetWithdrawals(t *testing.T) {
 		{
 			"Negative/RepositoryError",
 			http.MethodGet,
-			func(api *mocks.TestAPI) (string, error) {
+			func(testAPI *api.TestAPI) (string, error) {
 				tokenString, userID, err := GetUserIDWithToken()
 				if err != nil {
 					return "", err
 				}
 
-				api.GetPgUserWithdrawEXPECT().GetAllByUserID(gomock.Any(), userID).Return(nil, errors.New("not connected"))
+				testAPI.GetPgUserWithdrawEXPECT().GetAllByUserID(gomock.Any(), userID).Return(nil, errors.New("not connected"))
 
 				return tokenString, nil
 			},
@@ -95,11 +95,11 @@ func TestHandlerGetWithdrawals(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.Name, func(t *testing.T) {
-			api := NewTestAPI(t)
+			testAPI := NewTestAPI(t)
 
 			var tokenString string
 			if tt.BeforeFunc != nil {
-				tknString, err := tt.BeforeFunc(api)
+				tknString, err := tt.BeforeFunc(testAPI)
 				require.NoError(t, err, "Ошибка при выполнении функции до теста")
 
 				tokenString = tknString
@@ -110,7 +110,7 @@ func TestHandlerGetWithdrawals(t *testing.T) {
 			req := httptest.NewRequest(tt.Method, "/api/user/withdrawals", nil)
 			req.Header.Set("Authorization", tokenString)
 
-			api.GetRouter().ServeHTTP(w, req)
+			testAPI.GetRouter().ServeHTTP(w, req)
 
 			res := w.Result()
 			defer res.Body.Close()
