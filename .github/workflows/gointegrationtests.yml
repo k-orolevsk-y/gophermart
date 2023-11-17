@@ -10,6 +10,7 @@ jobs:
 
   integration:
     runs-on: ubuntu-latest
+    container: golang:1.21
 
     services:
       postgres:
@@ -17,27 +18,20 @@ jobs:
         env:
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: test_gophermart
-        ports:
-          - 5432:5432
         options: >-
           --health-cmd pg_isready
-          --health-interval 5s
+          --health-interval 10s
           --health-timeout 5s
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       - name: Integration Test
         run: |
-          sleep 10
           go test \
             -v \
             -tags=integration \
             github.com/k-orolevsk-y/gophermart/internal/gophermart/repository \
-            -d="host=postgres user=postgres password=postgres dbname=test_gophermart port=5432 sslmode=disable"
+            -d="postgresql://postgres:postgres@postgres/test_gophermart?sslmode=disable"
