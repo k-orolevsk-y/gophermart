@@ -14,27 +14,25 @@ import (
 	"github.com/k-orolevsk-y/gophermart/pkg/validation"
 )
 
-type (
-	handlerService struct {
-		logger    *zap.Logger
-		jwt       *jwt.Jwt
-		pg        repository.Repository
-		orderPool pool
+type handlerService struct {
+	logger    *zap.Logger
+	jwt       *jwt.Jwt
+	pg        repository.Repository
+	orderPool pool
 
-		bindingWithValidation binding.Binding
-	}
+	bindingWithValidation binding.Binding
+}
 
-	apiService interface {
-		GetRouter() *router.Router
-		GetLogger() *zap.Logger
-		GetPg() repository.Repository
-		GetOrderPool() *orderpool.OrderPool
-	}
+type apiService interface {
+	GetRouter() *router.Router
+	GetLogger() *zap.Logger
+	GetPg() repository.Repository
+	GetOrderPool() *orderpool.OrderPool
+}
 
-	pool interface {
-		AddJob(order models.Order)
-	}
-)
+type pool interface {
+	AddJob(order models.Order)
+}
 
 func ConfigureHandlersService(api apiService) {
 	hs := &handlerService{
