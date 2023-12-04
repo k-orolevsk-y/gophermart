@@ -37,6 +37,7 @@ func main() {
 
 	pool := orderpool.NewOrderPool(logger, rep)
 	pool.Run()
+	defer pool.Close()
 
 	apiService := api.New(logger, pool, rep)
 	apiService.Configure()
@@ -53,10 +54,7 @@ func main() {
 	if err = apiService.Shutdown(ctx); err != nil {
 		logger.Fatal("fatal error shutdown HTTP server", zap.Error(err))
 	}
+
 	logger.Info("http server status", zap.Bool("shutdown", apiService.WaitShutdown(ctx)))
-
-	pool.Close()
-	logger.Info("orders pool closed")
-
 	logger.Info("successfully shutdown server gracefully")
 }
