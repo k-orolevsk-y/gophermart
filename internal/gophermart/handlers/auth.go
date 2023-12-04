@@ -28,12 +28,12 @@ func (hs *handlerService) Register(ctx *gin.Context) {
 		Login:    data.Login,
 		Password: fmt.Sprint(data.Password),
 	}
-	if err := hs.pg.User().Create(ctx, &user); err != nil {
-		pgError := hs.pg.ParsePgError(err)
+	if err := hs.api.GetPg().User().Create(ctx, &user); err != nil {
+		pgError := hs.api.GetPg().ParsePgError(err)
 		if pgerrcode.IsIntegrityConstraintViolation(pgError.Code) {
 			ctx.AbortWithStatusJSON(http.StatusConflict, models.NewConflictErrorResponse("A user with this login is already registered"))
 		} else {
-			hs.logger.Error("error create user", zap.Error(err))
+			hs.api.GetLogger().Error("error create user", zap.Error(err))
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		}
 
@@ -42,7 +42,7 @@ func (hs *handlerService) Register(ctx *gin.Context) {
 
 	tokenString, err := hs.jwt.Encode(&user)
 	if err != nil {
-		hs.logger.Error("error encode token", zap.Error(err))
+		hs.api.GetLogger().Error("error encode token", zap.Error(err))
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		return
 	}
@@ -62,12 +62,12 @@ func (hs *handlerService) Login(ctx *gin.Context) {
 		return
 	}
 
-	user, err := hs.pg.User().GetByLogin(ctx, data.Login)
+	user, err := hs.api.GetPg().User().GetByLogin(ctx, data.Login)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, models.NewAuthorizationErrorResponse("Invalid login or password"))
 		} else {
-			hs.logger.Error("error get user", zap.Error(err))
+			hs.api.GetLogger().Error("error get user", zap.Error(err))
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		}
 
@@ -81,7 +81,7 @@ func (hs *handlerService) Login(ctx *gin.Context) {
 
 	token, err := hs.jwt.Encode(user)
 	if err != nil {
-		hs.logger.Error("error encode token", zap.Error(err))
+		hs.api.GetLogger().Error("error encode token", zap.Error(err))
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		ctx.Abort()
 
