@@ -19,9 +19,9 @@ func (hs *handlerService) GetOrders(ctx *gin.Context) {
 		return
 	}
 
-	orders, err := hs.pg.Order().GetAllByUserID(ctx, tokenClaims.UserID)
+	orders, err := hs.api.GetPg().Order().GetAllByUserID(ctx, tokenClaims.UserID)
 	if err != nil {
-		hs.logger.Error("error get user orders", zap.Error(err))
+		hs.api.GetLogger().Error("error get user orders", zap.Error(err))
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		return
 	}
@@ -71,8 +71,8 @@ func (hs *handlerService) NewOrder(ctx *gin.Context) {
 		Accrual: nil,
 	}
 
-	if err = hs.pg.Order().Create(ctx, &order); err != nil {
-		pgError := hs.pg.ParsePgError(err)
+	if err = hs.api.GetPg().Order().Create(ctx, &order); err != nil {
+		pgError := hs.api.GetPg().ParsePgError(err)
 
 		switch pgError.Message {
 		case repository.ErrorOrderByThisUser:
@@ -80,13 +80,13 @@ func (hs *handlerService) NewOrder(ctx *gin.Context) {
 		case repository.ErrorOrderByOtherUser:
 			ctx.AbortWithStatusJSON(http.StatusConflict, models.NewConflictErrorResponse("An order with this number has already been uploaded by another user"))
 		default:
-			hs.logger.Error("error create order", zap.Error(err))
+			hs.api.GetLogger().Error("error create order", zap.Error(err))
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		}
 
 		return
 	}
 
-	hs.orderPool.AddJob(order)
+	hs.api.GetOrderPool().AddJob(order)
 	ctx.AbortWithStatus(http.StatusAccepted)
 }

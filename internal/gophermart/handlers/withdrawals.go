@@ -16,9 +16,9 @@ func (hs *handlerService) GetWithdrawals(ctx *gin.Context) {
 		return
 	}
 
-	withdrawals, err := hs.pg.UserWithdraw().GetAllByUserID(ctx, tokenClaims.UserID)
+	withdrawals, err := hs.api.GetPg().UserWithdraw().GetAllByUserID(ctx, tokenClaims.UserID)
 	if err != nil {
-		hs.logger.Error("error get user withdrawals", zap.Error(err))
+		hs.api.GetLogger().Error("error get user withdrawals", zap.Error(err))
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		return
 	}
