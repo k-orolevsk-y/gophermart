@@ -18,16 +18,16 @@ func (hs *handlerService) GetBalance(ctx *gin.Context) {
 		return
 	}
 
-	sumWithdrawn, err := hs.pg.UserWithdraw().GetWithdrawnSumByUserID(ctx, tokenClaims.UserID)
+	sumWithdrawn, err := hs.api.GetPg().UserWithdraw().GetWithdrawnSumByUserID(ctx, tokenClaims.UserID)
 	if err != nil {
-		hs.logger.Error("error get sum withdrawn", zap.Error(err))
+		hs.api.GetLogger().Error("error get sum withdrawn", zap.Error(err))
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		return
 	}
 
-	sumAccrual, err := hs.pg.Order().GetAccrualSumByUserID(ctx, tokenClaims.UserID)
+	sumAccrual, err := hs.api.GetPg().Order().GetAccrualSumByUserID(ctx, tokenClaims.UserID)
 	if err != nil {
-		hs.logger.Error("error get sum accrual", zap.Error(err))
+		hs.api.GetLogger().Error("error get sum accrual", zap.Error(err))
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		return
 	}
@@ -68,11 +68,11 @@ func (hs *handlerService) NewBalanceWithdrawn(ctx *gin.Context) {
 		OrderID: orderNumber,
 		Sum:     data.Sum,
 	}
-	if err = hs.pg.UserWithdraw().Create(ctx, &withdraw); err != nil {
+	if err = hs.api.GetPg().UserWithdraw().Create(ctx, &withdraw); err != nil {
 		if errors.Is(err, repository.ErrorInsufficientFunds) {
 			ctx.AbortWithStatusJSON(http.StatusPaymentRequired, models.NewPaymentRequiredErrorResponse("Insufficient funds in the account"))
 		} else {
-			hs.logger.Error("error create user withdraw", zap.Error(err))
+			hs.api.GetLogger().Error("error create user withdraw", zap.Error(err))
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 		}
 		return

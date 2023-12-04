@@ -18,6 +18,6 @@ func (hs *handlerService) NoMethod(ctx *gin.Context) {
 }
 
 func (hs *handlerService) Recovery(ctx *gin.Context, err any) {
-	hs.logger.Error("Panic on request", zap.Any("error", err))
+	hs.api.GetLogger().Error("Panic on request", zap.Any("error", err))
 	ctx.AbortWithStatusJSON(http.StatusInternalServerError, models.NewInternalServerErrorResponse())
 }
